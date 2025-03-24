@@ -1,8 +1,69 @@
-﻿@page "/"
-@using AIChatApp.Components.Chat
+﻿@inherits SharedCultureComponent
+@page "/{culture}/chat"
+@page "/{culture}/chat/{conversationId:guid}"
+@inject JsonLocalizationService L
+@inject DatabaseService DatabaseService
+@inject UserService UserService
 
-<PageTitle>Home</PageTitle>
+<style>
+  article.page--chat {
+    position: relative;
+  }
 
-<h1>Hello, AI world!</h1>
+  .btn.btn--chat-history {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
 
-<Chat />
+  @@media (min-width: 1200px) {
+    .img-fluid {
+      max-height: 110px;
+    }
+  }
+
+  @@media screen and (max-width: 479px) {
+    .btn.btn--chat-history {
+      top: -60px;
+    }
+  }
+</style>
+
+<PageTitle>@L._("Pages.Home.Title")</PageTitle>
+
+<article class="content page page--chat">
+
+  <h1 class="mt-2 mb-3" property="name" id="wb-cont" tabindex="-1">
+    @L._("Pages.Home.Title")
+  </h1>
+
+  @if (DatabaseService.IsInitialized() && UserService.IsUserAvailable())
+  {
+    <NavLink href="@L._("Pages.ChatHistory.Url")" class="btn btn-outline btn-gc-design-system btn--chat-history">
+      @L._("Pages.ChatHistory.Title")
+    </NavLink>
+  }
+  <div>
+    <div class="row align-items-start">
+      <div class="col">
+        <p>
+          @((MarkupString)L._("Pages.Home.Paragraph1"))
+        </p>
+        <p>
+          @((MarkupString)L._("Pages.Home.Paragraph2.1"))
+          <NavLink href="@L._("Pages.About.Url")">
+            @L._("Pages.Home.Paragraph2.2")
+          </NavLink>.
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+  <Chat ConversationId="@ConversationId" />
+
+</article>
+
+@code {
+  [Parameter] public Guid? ConversationId { get; set; }
+}

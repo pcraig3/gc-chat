@@ -111,7 +111,7 @@ function Check_Az() {
 }
 
 # list of locations in which to look for candidate models
-$locations = @( "australiaeast", "eastus", "eastus2", "francecentral", "norwayeast", "swedencentral", "uksouth")
+$locations = @( "australiaeast", "canadaeast", "eastus", "eastus2", "francecentral", "norwayeast", "swedencentral", "uksouth")
 
 # list of candidate models we need
 $candidate_models = @()

@@ -1,38 +1,89 @@
 .chat {
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - var(--header-height));
+  min-height: 33vh;
 }
 
-    .chat .messages-scroller {
-        /* Make the scrollbar default to being at the end, instead of the start */
-        display: flex;
-        flex-direction: column-reverse;
-        overflow-y: auto;
-        flex-grow: 1;
-    }
+.chat .messages-scroller {
+  /* Make the scrollbar default to being at the end, instead of the start */
+  display: flex;
+  flex-direction: column-reverse;
+  flex-grow: 1;
+}
 
-    .chat .messages {
-        display: flex;
-        flex-direction: column;
-        padding: 1rem 1.5rem 0 0.75rem;
-        gap: 1rem;
-        align-items: flex-start;
-        margin-bottom: auto;
-    }
+.chat .messages {
+  display: flex;
+  flex-direction: column;
+  padding-top: 1rem;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: auto;
+}
 
-    .chat .write-message {
-        height: 160px;
-        flex-shrink: 0;
-        padding: 0.5rem 1rem 1.5rem 1rem;
-        z-index: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        align-items: center;
-    }
+.chat .messages-form {
+  margin: 38px 0 28px 0;
+  text-align: center;
+}
 
-        .chat .write-message textarea {
-            --control-corner-radius: 20;
-            --focus-stroke-width: 0;
-        }
+.chat .messages-form--actions {
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.messages-form--actions--message span {
+  font-size: 13px;
+}
+
+.chat .messages-form--actions button {
+  margin-right: 8px;
+}
+
+.chat .messages-form textarea {
+  width: 100%;
+  border-radius: 5px;
+  padding-right: 70px;
+  scrollbar-width: none;
+  resize: none;
+  border: 2px solid #5c5c5c;
+}
+
+.chat .messages-form textarea:focus,
+.chat .messages-form textarea:focus-visible {
+  outline: 2.5px solid #0040dd;
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.chat .messages-form .btn--send[disabled] {
+  opacity: 0.65;
+}
+
+/* Applies from 576 - 767 */
+@media (min-width: 576px) {
+  .chat .messages-form textarea,
+  .chat .messages-form .btn--send {
+    font-size: 18px;
+  }
+}
+
+/* Applies from 768 - 969 */
+@media (min-width: 768px) {
+  .chat .messages-form textarea,
+  .chat .messages-form .btn--send {
+    font-size: 19px;
+  }
+}
+
+/* Applies from 970 - 1199 */
+@media (min-width: 970px) {
+  .chat .messages-form textarea,
+  .chat .messages-form .btn--send {
+    font-size: 20px;
+  }
+
+  .messages-form--actions--message span {
+    font-size: 14px;
+  }
+}

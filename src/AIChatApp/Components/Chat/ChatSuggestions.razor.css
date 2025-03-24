@@ -1,0 +1,39 @@
+.chat-suggestions .chat-suggestions--intro {
+  font-size: 70%;
+  color: #6b6a6a;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+.chat-suggestions.well {
+  border-style: dashed;
+  border-width: 2px;
+  background: transparent;
+  padding: 19px 14px 9px 14px;
+}
+
+.chat-suggestions .btn.btn-default.btn-gc-design-system {
+  font-size: 95%;
+  color: #333;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.chat-suggestions .btn.btn-default.btn-gc-design-system:focus {
+  color: white;
+}
+
+.chat-suggestions .glyphicon {
+  margin-right: 8px;
+}
+
+/* Applies from 576px */
+@media (min-width: 576px) {
+  .chat-suggestions.well {
+    padding: 19px 19px 9px 19px;
+  }
+
+  .chat-suggestions .btn.btn-default.btn-gc-design-system {
+    font-size: 90%;
+  }
+}

@@ -1,20 +1,70 @@
-﻿@using AIChatApp.Model
+﻿@using Markdig
+@inherits SharedCultureComponent
+@inject JsonLocalizationService L
+@inject ConversationService ConversationHandler
+
 
 @if (State.IsAssistant)
 {
-    <div class="message assistant visible">
-        <div class="sender-name">Assistant</div>
-        <div class="message-content" visi>
-            <div class="message-text">@(string.IsNullOrEmpty(State.Content) ? "..." : State.Content)</div>
+    <div class="message-wrapper message-wrapper--assistant">
+        <div class="message assistant visible @(string.IsNullOrEmpty(State.Content) ? "cursor-wait" : "")" role="article"
+            tabindex="0" id="message-@State.Id">
+            <h3 class="sr-only" aria-label="@L._("Chat.ChatMessage.AssistantSaid")">@L._("Chat.ChatMessage.AssistantSaid")
+            </h3>
+            <div class="message-content" visi>
+                <div class="message-text">
+                    @if (string.IsNullOrEmpty(State.Content))
+                    {
+                        @L._("Chat.ChatMessage.LoadingMessage")
+                    }
+                    else
+                    {
+                        @((MarkupString)GetHtmlFromMarkdown(State.Content))
+                    }
+                </div>
+            </div>
+            @if (State.Sources is { Count: > 0 })
+            {
+                <div class="message-sources">
+                    <div class="message-sources--heading">@L._("Chat.ChatMessage.Sources")</div>
+                    <ol class="message-sources--list">
+                        @foreach (var source in State.Sources)
+                        {
+                            <li>
+                                <ChatSource Source="@source" />
+                            </li>
+                        }
+                    </ol>
+                </div>
+            }
         </div>
+        @if (!string.IsNullOrEmpty(State.Content)
+            && State.Status == "success"
+            && ConversationHandler.IsInitialized())
+        {
+            <div class="message--actions">
+                @if (State.Feedback == 1 || State.Feedback == -1)
+                {
+                    <ChatFeedbackMessage FeedbackMessage="@State.FeedbackMessage" Positive="@(State.Feedback == 1)" />
+                }
+                else
+                {
+                    <ChatFeedback Positive="true" Message="@State" OnFeedbackSubmitted="OnFeedbackSubmitted" />
+                    <ChatFeedback Positive="false" Message="@State" OnFeedbackSubmitted="OnFeedbackSubmitted" />
+                }
+            </div>
+        }
     </div>
 }
 else
 {
-    <div class="message">
-        <div class="sender-name">You</div>
-        <div class="message-content">
-            <div class="message-text">@State.Content</div>
+    <div class="message-wrapper message-wrapper--user">
+        <div class="message user" role="article" tabindex="0" id="message-@State.Id">
+            <div class="message-content">
+                <h2 class="message-text"><span class="sr-only"
+                        aria-label="@L._("Chat.ChatMessage.UserSaid")">@L._("Chat.ChatMessage.UserSaid")</span><span>@State.Content</span>
+                </h2>
+            </div>
         </div>
     </div>
 }
@@ -22,4 +72,19 @@ else
 @code {
     [Parameter, EditorRequired]
     public Message State { get; set; } = default!;
-} 
+    private void OnFeedbackSubmitted()
+    {
+        StateHasChanged(); // re-render the component
+    }
+    private string GetHtmlFromMarkdown(string markdown)
+    {
+        if (string.IsNullOrEmpty(markdown))
+            return string.Empty;
+
+        var pipeline = new MarkdownPipelineBuilder()
+        .UseAdvancedExtensions() // Supports tables, lists, footnotes, etc.
+        .Build();
+
+        return Markdown.ToHtml(markdown, pipeline);
+    }
+}

@@ -1,0 +1,199 @@
+@inherits SharedCultureComponent
+@page "/en/chat-history"
+@page "/fr/historique-du-chat"
+@using System.Text.RegularExpressions
+@rendermode InteractiveServer
+@inject JsonLocalizationService L
+@inject ConversationService ConversationHandler
+
+<style>
+  .chat-history-conversation {
+    padding: 15px 15px 15px 0;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #d9d9d9;
+  }
+
+  .chat-history-conversation:last-of-type {
+    border-bottom: none;
+  }
+
+  .chat-history-title--number {
+    font-family: monospace;
+    font-variant: small-caps;
+    color: #888;
+    font-size: 80%;
+  }
+
+  .chat-history-title h2 {
+    margin-top: 0;
+  }
+
+  .chat-history-updated {
+    font-weight: 700;
+  }
+
+  .chat-history-conversation details ul {
+    margin-top: 20px;
+    padding: 0;
+  }
+
+  .chat-history-message {
+    display: block;
+    padding: 11px;
+    margin: 0 0 11.5px;
+    font-size: 90%;
+    line-height: 1.4375;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .chat-history-message.assistant {
+    background: #fcfcfc;
+  }
+
+  .clamp-3 {
+    font-style: italic;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    -webkit-line-clamp: 3;
+    text-overflow: ellipsis;
+  }
+
+  .chat-history--actions {
+    margin: 20px 0;
+  }
+
+  .chat-history--actions>.btn {
+    margin-right: 8px;
+  }
+</style>
+
+<PageTitle>@L._("Pages.ChatHistory.Title") — @L._("Pages.Home.Title")</PageTitle>
+
+<article class="content page page--chat-history">
+  <p>
+    <NavLink href="@($"/{CurrentCulture}/chat")">
+      <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> @L._("Pages.ChatHistory.Back")
+    </NavLink>
+  </p>
+  <h1 class="mt-2 mb-3" property="name" id="wb-cont" tabindex="-1">@L._("Pages.ChatHistory.Title")</h1>
+
+  <section class="alert alert-warning">
+    <h2 class="h3">@L._("Pages.ChatHistory.WarningHeading")</h2>
+    <p>
+      @L._("Pages.ChatHistory.WarningParagraph1")
+    </p>
+    <p>
+      @L._("Pages.ChatHistory.WarningParagraph2")
+    </p>
+  </section>
+
+  @if (isLoading)
+  {
+    <p>@L._("Pages.ChatHistory.Loading")</p>
+  }
+  else if (chatHistory?.Any() == true)
+  {
+    @foreach (var tuple in chatHistory.Select((convo, index) => (convo, index)))
+    {
+      var convo = tuple.convo;
+      var index = tuple.index;
+
+      <section class="chat-history-conversation" @key="convo.Conversation.Id">
+        <div class="chat-history-title">
+          <h2><span class="chat-history-title--number">@(@index + 1)</span>
+            @convo.Conversation.Title</h2>
+          <p class="clamp-3">@((MarkupString)(convo.Messages.Count > 1 ? convo.Messages[1].Content : convo.Messages[0].Content))</p>
+          <p class="chat-history-updated">@L._("Pages.ChatHistory.LastResponse")
+            @((MarkupString)FormatDateWithOrdinal(convo.Conversation.UpdatedAt))</p>
+        </div>
+        <details>
+          <summary>
+            <div class="chat-history-title--subheading">@convo.Messages.Count
+              @L._("Pages.ChatHistory.MessagesInThread")</div>
+          </summary>
+
+          <ul class="chat-history-list">
+            @foreach (var message in convo.Messages)
+            {
+              <li class="chat-history-message @(message.IsAssistant ? "assistant" : "user")">
+                <div>
+                  <strong>@(message.Role == "user" ? L._("Pages.ChatHistory.You") :
+                                  L._("Pages.ChatHistory.Assistant"))</strong>
+            <p>@FormatDate(convo.Conversation.UpdatedAt, includeTime: true)</p>
+            <p class="clamp-3">@((MarkupString)message.Content)</p>
+            @if (message.Feedback == 1 || message.Feedback == -1)
+                  {
+                    <ChatFeedbackMessage FeedbackMessage="@message.FeedbackMessage" Positive="@(message.Feedback == 1)" />
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        </details>
+        <div class="chat-history--actions">
+          <a class="btn btn-outline btn-gc-design-system" href="/@CurrentCulture/chat/@convo.Conversation.Id">
+            @L._("Pages.ChatHistory.ResumeButton")
+          </a>
+          <DeleteConversation Title="@convo.Conversation.Title" ConversationId="@Guid.Parse(convo.Conversation.Id)"
+            OnConfirmed="OnDeleteConversationAsync" />
+        </div>
+      </section>
+    }
+  }
+  else
+  {
+    <p>@L._("Pages.ChatHistory.NoMessages")</p>
+  }
+</article>
+
+@code {
+  private List<ConversationWithMessages> chatHistory = new();
+  private bool isLoading = true;
+
+  protected override async Task OnInitializedAsync()
+  {
+    isLoading = true;
+    chatHistory = await ConversationHandler.GetConversationThreadsAsync();
+    isLoading = false;
+  }
+
+  private async Task OnDeleteConversationAsync(Guid conversationId)
+  {
+    await ConversationHandler.DeleteConversationByIdAsync(conversationId);
+    chatHistory = await ConversationHandler.GetConversationThreadsAsync();
+  }
+
+  private string FormatDate(DateTime date, bool includeTime = false)
+  {
+    var adjusted = date.AddHours(-5);
+    var culture = new CultureInfo($"{CurrentCulture}-CA");
+
+    if (includeTime)
+    {
+      var separator = CurrentCulture == "fr" ? " à " : " at ";
+      return adjusted.ToString("D", culture) + separator + adjusted.ToString("t", culture);
+    }
+
+    return adjusted.ToString("D", culture);
+  }
+
+  private string FormatDateWithOrdinal(DateTime date)
+  {
+    string formatted = FormatDate(date, includeTime: false);
+
+    if (CurrentCulture == "fr")
+    {
+      // Look for " 1 " and replace with " 1<sup>er</sup> "
+      formatted = Regex.Replace(
+      formatted,
+      @"\b1 (?=\w+)", // Match the digit 1 followed by a word (like "juin")
+      "1<sup>er</sup> "
+      );
+    }
+
+    return formatted;
+  }
+}

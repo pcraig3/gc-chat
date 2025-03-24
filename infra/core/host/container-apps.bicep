@@ -23,9 +23,14 @@ module containerAppsEnvironment 'container-apps-environment.bicep' = {
   }
 }
 
+// Pick the RG name we're going to deploy the ACR into.
+var registryRgName = empty(containerRegistryResourceGroupName)
+  ? resourceGroup().name
+  : containerRegistryResourceGroupName
+
 module containerRegistry 'container-registry.bicep' = {
   name: '${name}-container-registry'
-  scope: !empty(containerRegistryResourceGroupName) ? resourceGroup(containerRegistryResourceGroupName) : resourceGroup()
+  scope: resourceGroup(registryRgName)
   params: {
     name: containerRegistryName
     location: location

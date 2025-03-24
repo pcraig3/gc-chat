@@ -1,0 +1,37 @@
+@page "/{culture=en}/{*path}"
+@using Microsoft.AspNetCore.Localization
+@using System.Globalization
+@{
+    Layout = null;
+
+    // Set culture based on route
+    var culture = RouteData.Values["culture"]?.ToString() ?? "en";
+    var requestCulture = new RequestCulture(culture);
+    var supportedCultures = new[] { "en", "fr" };
+
+    if (supportedCultures.Contains(culture))
+    {
+        CultureInfo.CurrentCulture = new CultureInfo(culture);
+        CultureInfo.CurrentUICulture = new CultureInfo(culture);
+    }
+
+    Response.Cookies.Append(
+    CookieRequestCultureProvider.DefaultCookieName,
+    CookieRequestCultureProvider.MakeCookieValue(requestCulture),
+    new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) }
+    );
+}
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <base href="~/" />
+        <!-- Include your standard styles here -->
+    </head>
+
+    <body>
+        <component type="typeof(AIChatApp.Components.App)" render-mode="ServerPrerendered" />
+        <script src="_framework/blazor.server.js"></script>
+    </body>
+
+</html>

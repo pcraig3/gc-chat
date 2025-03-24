@@ -1,0 +1,114 @@
+﻿@inherits SharedCultureComponent
+@page "/en/about"
+@page "/fr/a-propos"
+@inject JsonLocalizationService L
+
+<PageTitle>@L._("Pages.About.Title") — @L._("Pages.Home.Title")</PageTitle>
+
+<article class="content page page--documents">
+  <p>
+    <NavLink href="@($"/{CurrentCulture}/chat")">
+      <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> @L._("Pages.ChatHistory.Back")
+    </NavLink>
+  </p>
+
+  <h1 id="wb-cont" class="mt-2 mb-3" tabindex="-1">@L._("Pages.About.Title")</h1>
+
+  <p>
+    @((MarkupString)L._("Pages.About.Paragraph010"))
+  </p>
+  <p>
+    @((MarkupString)L._("Pages.About.Paragraph011"))
+  </p>
+  <p>
+    @((MarkupString)L._("Pages.About.Paragraph012"))
+  </p>
+  <p>
+    @((MarkupString)L._("Pages.About.Paragraph013"))
+  </p>
+  <p>
+    @((MarkupString)L._("Pages.About.Paragraph014"))
+  </p>
+  <p>
+    @((MarkupString)L._("Pages.About.Paragraph015"))
+  </p>
+
+
+  <!-- 020: Features -->
+  <h2 id="heading--2">@L._("Pages.About.Heading020")</h2>
+
+  <p>@L._("Pages.About.Paragraph020")</p>
+
+  <ul>
+    <li>@L._("Pages.About.List01.Item01")</li>
+    <li>@L._("Pages.About.List01.Item02")</li>
+    <li>@L._("Pages.About.List01.Item03")</li>
+    <li>@L._("Pages.About.List01.Item04")</li>
+    <li>@L._("Pages.About.List01.Item05")</li>
+    <li>@L._("Pages.About.List01.Item06")</li>
+    <li>@L._("Pages.About.List01.Item07")</li>
+    <li>@L._("Pages.About.List01.Item08")</li>
+  </ul>
+
+  <p>@((MarkupString)L._("Pages.About.Paragraph021"))</p>
+
+  <!-- 030: How do I run it? -->
+  <h2 id="heading--3">@L._("Pages.About.Heading030")</h2>
+
+  <p>
+    @((MarkupString)L._("Pages.About.Paragraph030"))
+  </p>
+  <p>
+    @((MarkupString)L._("Pages.About.Paragraph031"))
+  </p>
+  <p>
+    @((MarkupString)L._("Pages.About.Paragraph032"))
+  </p>
+
+  <!-- 040: Can I use GC Chat in my department? -->
+  <h2 id="heading--4">@L._("Pages.About.Heading040")</h2>
+
+  <p>
+    @((MarkupString)L._("Pages.About.Paragraph040"))
+  </p>
+  <p>
+    @L._("Pages.About.Paragraph041")
+  </p>
+  <p>
+    @L._("Pages.About.Paragraph042")
+  </p>
+  <p>
+    @L._("Pages.About.Paragraph043")
+  </p>
+  <p>
+    @L._("Pages.About.Paragraph044")
+  </p>
+
+  <!-- 050: Privacy considerations -->
+  <h2 id="heading--5">@L._("Pages.About.Heading050")</h2>
+
+  <p>
+    @L._("Pages.About.Paragraph050")
+  </p>
+  <p>
+    @L._("Pages.About.Paragraph051")
+  </p>
+  <p>
+    @((MarkupString)L._("Pages.About.Paragraph052"))
+  </p>
+
+  <!-- 060: Contact -->
+  <h2 id="heading--6">@L._("Pages.About.Heading060")</h2>
+
+  <p>
+    @((MarkupString)L._("Pages.About.Paragraph060"))
+  </p>
+  <p>
+    @((MarkupString)L._("Pages.About.Paragraph061"))
+  </p>
+  <p>
+    @((MarkupString)L._("Pages.About.Paragraph062"))
+  </p>
+
+  <br />
+</article>

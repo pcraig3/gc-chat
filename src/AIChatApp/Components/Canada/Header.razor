@@ -1,0 +1,76 @@
+@namespace AIChatApp.Components.Canada
+@inherits SharedCultureComponent
+@inject JsonLocalizationService L
+@inject NavigationManager Nav
+@implements IDisposable
+
+
+<!-- Static header begins -->
+<header>
+  <div id="wb-bnr" class="container">
+    <div class="row">
+
+      <div class="brand col-xs-9 col-sm-5 col-md-4" property="publisher" typeof="GovernmentOrganization">
+        <a href="@L._("Canada.Header.LogoUrl")" property="url">
+          <img loading="eager" src="@L._("Canada.Header.LogoSrc")" alt="@L._("Canada.Header.LogoAlt")"
+            property="logo" /><span class="wb-inv"> / <span
+              lang="@L._("Canada.Header.AlternateLangCode")">@L._("Canada.Header.AlternateGovernmentAlt")</span></span>
+        </a>
+        <meta property="name" content="@L._("Canada.Header.GovernmentAlt")">
+        <meta property="areaServed" typeof="Country" content="Canada" />
+        <link property="logo" href="https://wet-boew.github.io/themes-dist/GCWeb/GCWeb/assets/wmms-blk.svg" />
+      </div>
+
+      <LanguageSwitcher />
+
+    </div>
+  </div>
+  <hr>
+
+  <nav id="wb-bc" property="breadcrumb">
+    <h2>@L._("Canada.Header.BreadcrumbHeading")</h2>
+    <div class="container">
+      <ol class="breadcrumb" typeof="BreadcrumbList">
+        <li property="itemListElement" typeof="ListItem">
+          <a property="item" typeof="WebPage" href="@L._("Canada.Header.HomeUrl")">
+            <span property="name">@L._("Canada.Header.Home")</span>
+          </a>
+          <meta property="position" content="1">
+        </li>
+        @if (ShowHomePageBreadcrumb)
+        {
+          <li property="itemListElement" typeof="ListItem">
+            <NavLink property="item" typeof="WebPage" href="@SecondCrumbLink">
+              <span property="name">@L._("Pages.Home.Title")</span>
+            </NavLink>
+            <meta property="position" content="2">
+          </li>
+        }
+      </ol>
+    </div>
+  </nav>
+</header>
+<!-- Static header ends -->
+
+@code {
+  private bool ShowHomePageBreadcrumb =>
+  !Nav.Uri.EndsWith("/chat", StringComparison.OrdinalIgnoreCase) &&
+  !Nav.Uri.Contains("/chat/", StringComparison.OrdinalIgnoreCase);
+
+  private string SecondCrumbLink => $"/{CurrentCulture}/chat";
+
+  protected override void OnInitialized()
+  {
+    Nav.LocationChanged += OnLocationChanged;
+  }
+
+  private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+  {
+    InvokeAsync(StateHasChanged);
+  }
+
+  public void Dispose()
+  {
+    Nav.LocationChanged -= OnLocationChanged;
+  }
+}

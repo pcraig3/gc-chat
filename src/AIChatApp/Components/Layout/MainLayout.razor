@@ -1,23 +1,45 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject UserService UserService
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@{
+    var userId = UserService.GetUserIdAsync();
+    var userClass = $"user--{userId ?? "null"}";
+}
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
+<CascadingValue Name="Culture" Value="@CurrentCulture">
+    <div class="wrap @userClass">
+        <SkipLink />
+        <PhaseBanner />
+        <Header />
+        <main class="container">
             @Body
-        </article>
-    </main>
-</div>
+        </main>
+        <Footer />
+    </div>
+</CascadingValue>
 
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
-</div>
+@code {
+    private string CurrentCulture => GetCultureFromUrl();
+
+    private string GetCultureFromUrl()
+    {
+        var uri = new Uri(NavigationManager.Uri);
+        var path = uri.AbsolutePath;
+
+        if (!string.IsNullOrEmpty(path))
+        {
+            var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length > 0)
+            {
+                var culture = segments[0].ToLowerInvariant();
+                if (culture == "en" || culture == "fr")
+                {
+                    return culture;
+                }
+            }
+        }
+
+        return "en"; // Fallback to default
+    }
+}

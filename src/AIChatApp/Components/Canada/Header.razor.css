@@ -1,0 +1,19 @@
+header .brand {
+  padding-top: 20px;
+}
+
+header .brand img {
+  height: auto;
+  margin-top: 10px;
+  object-fit: contain;
+}
+
+@media screen and (max-width: 479px) {
+  header .brand img {
+    width: 100%;
+  }
+}
+
+#wb-bc ol.breadcrumb {
+  margin-top: 10px;
+}

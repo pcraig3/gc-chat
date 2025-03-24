@@ -1,0 +1,94 @@
+@inherits SharedCultureComponent
+@page "/en/admin/feedback"
+@page "/fr/admin/commentaires"
+@inject DatabaseService Db
+@inject JsonLocalizationService L
+
+<PageTitle>@L._("Pages.AdminFeedback.Title") — @L._("Pages.Home.Title")</PageTitle>
+
+<article class="content page page--admin-feedback">
+  <p>
+    <NavLink href="@($"/{CurrentCulture}/chat")">
+      <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> @L._("Pages.ChatHistory.Back")
+    </NavLink>
+  </p>
+  <h1 class="mt-2 mb-3" property="name" id="wb-cont" tabindex="-1">@L._("Pages.AdminFeedback.Title")</h1>
+
+  @if (isLoading)
+  {
+    <p>@L._("Pages.AdminFeedback.Loading")</p>
+  }
+  else
+  {
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th scope="col">Category</th>
+          <th scope="col">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>@L._("Pages.AdminFeedback.FeedbackMessages")</td>
+          <td>@feedbackMessages.Count</td>
+        </tr>
+        <tr>
+          <td>@L._("Pages.AdminFeedback.ConversationsWithFeedback")</td>
+          <td>@conversationsWithFeedback.Count</td>
+        </tr>
+        <tr>
+          <td>@L._("Pages.AdminFeedback.PositiveCount")</td>
+          <td>@positiveCount</td>
+        </tr>
+        <tr>
+          <td>@L._("Pages.AdminFeedback.PositiveWithComment")</td>
+          <td>@positiveWithCommentCount</td>
+        </tr>
+        <tr>
+          <td>@L._("Pages.AdminFeedback.NegativeCount")</td>
+          <td>@negativeCount</td>
+        </tr>
+        <tr>
+          <td>@L._("Pages.AdminFeedback.NegativeWithComment")</td>
+          <td>@negativeWithCommentCount</td>
+        </tr>
+      </tbody>
+    </table>
+  }
+</article>
+
+@code {
+  private bool isLoading = true;
+  private List<Message> feedbackMessages = new();
+  private HashSet<string> conversationsWithFeedback = new();
+  private int positiveCount, positiveWithCommentCount;
+  private int negativeCount, negativeWithCommentCount;
+
+  protected override async Task OnInitializedAsync()
+  {
+    isLoading = true;
+    feedbackMessages = await Db.GetMessagesWithFeedbackAsync();
+
+    foreach (var message in feedbackMessages)
+    {
+      if (!string.IsNullOrEmpty(message.ConversationId))
+        conversationsWithFeedback.Add(message.ConversationId);
+
+      if (message.Feedback == 1)
+      {
+        positiveCount++;
+        if (!string.IsNullOrWhiteSpace(message.FeedbackMessage))
+          positiveWithCommentCount++;
+      }
+      else if (message.Feedback == -1)
+      {
+        negativeCount++;
+        if (!string.IsNullOrWhiteSpace(message.FeedbackMessage))
+          negativeWithCommentCount++;
+      }
+    }
+
+    isLoading = false;
+  }
+}

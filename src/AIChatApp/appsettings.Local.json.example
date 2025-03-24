@@ -1,0 +1,16 @@
+{
+  "DetailedErrors": true,
+  "AIHost": "azureOpenAI",
+  "ASPNETCORE_ENVIRONMENT": "Development",
+
+  "AZURE_OPENAI_DEPLOYMENT": "gpt-4o",
+  "AZURE_OPENAI_ENDPOINT": "https://{name}.openai.azure.com/",
+  "AZURE_OPENAI_KEY": "",
+
+  "cosmosdb-connection-string": "",
+  "storage-connection-string": "",
+
+  "search-api-key": "",
+  "search-endpoint": "",
+  "search-index-name": ""
+}

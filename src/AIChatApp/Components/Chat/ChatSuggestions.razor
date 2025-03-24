@@ -1,0 +1,39 @@
+@inject IJSRuntime JS
+@inject JsonLocalizationService L
+
+@code {
+  [Parameter, EditorRequired]
+  public EventCallback<string> OnSuggestionSelected { get; set; }
+
+  private async Task SelectSuggestion(string text)
+  {
+    await OnSuggestionSelected.InvokeAsync(text);
+    await JS.InvokeVoidAsync("focusTextarea");
+  }
+
+  private List<string> Questions => new()
+{
+L._("Chat.ChatSuggestions.Question1"),
+L._("Chat.ChatSuggestions.Question2")
+};
+}
+
+<script>
+  window.focusTextarea = function () {
+    const el = document.querySelector("textarea");
+    if (el) {
+      el.focus();
+    }
+  };
+</script>
+
+<div class="chat-suggestions my-3 well" role="region" aria-label="Sample questions">
+  <p class="chat-suggestions--intro"><strong>@L._("Chat.ChatSuggestions.Prompt")</strong></p>
+
+  @foreach (var question in Questions)
+  {
+    <button type="button" class="btn btn-default btn-gc-design-system" @onclick="() => SelectSuggestion(question)">
+      <span class="glyphicon glyphicon-search" aria-hidden="true"></span> @question
+    </button>
+  }
+</div>

@@ -1,0 +1,67 @@
+@using AIChatApp.Models
+@inject JsonLocalizationService L
+
+
+<style>
+  .btn--div {
+    display: inline-block;
+    padding: 6px 10px;
+    line-height: 1.4375;
+  }
+
+  .btn--div.btn-outline-default--fail .glyphicon {
+    color: #a62a1e;
+    opacity: .8;
+  }
+
+  .btn--div.btn-outline-default--success .glyphicon {
+    color: #03662a;
+    opacity: .8;
+  }
+
+  .btn--div .feedback-message {
+    font-style: italic;
+    margin-left: 8px;
+  }
+
+  .btn--div .feedback-message::before {
+    content: "“";
+    /* Offset for bad kerning on italicised text */
+    margin-right: -4px;
+  }
+
+  .btn--div .feedback-message::after {
+    content: "”";
+  }
+</style>
+
+
+<div
+  class="btn--div btn-outline btn-outline-default btn-gc-design-system @(Positive ? "btn-outline-default--success" : "btn-outline-default--fail")">
+  <span class="glyphicon @(Positive ? "glyphicon-thumbs-up" : "glyphicon-thumbs-down")" aria-hidden="true"></span>
+  @if (!string.IsNullOrWhiteSpace(FeedbackMessage))
+  {
+    <span class="feedback-message">
+      <span class="sr-only">
+        @(Positive
+              ? L._("Chat.ChatFeedbackMessage.LabelWithCommentPositive")
+              : L._("Chat.ChatFeedbackMessage.LabelWithCommentNegative"))
+    </span>
+    @FeedbackMessage
+  </span>
+    }
+  else
+  {
+    <span class="sr-only">
+      @(Positive
+          ? L._("Chat.ChatFeedbackMessage.LabelNoCommentPositive")
+          : L._("Chat.ChatFeedbackMessage.LabelNoCommentNegative"))
+  </span>
+    }
+</div>
+
+
+@code {
+  [Parameter] public string? FeedbackMessage { get; set; }
+  [Parameter] public bool Positive { get; set; }
+}

@@ -1,27 +1,61 @@
-@page "/chat"
+@inject UserService UserService
 @inject IConfiguration Configuration
 @inject IJSRuntime JS
-@using AIChatApp.Model
 @attribute [StreamRendering(true)]
-
-<PageTitle>Chat</PageTitle>
+@inherits SharedCultureComponent
+@inject JsonLocalizationService L
 
 <div class="chat">
     <div class="messages-scroller">
-        <div class="messages">
-            <ChatMessage
-                State="@(new Message(){IsAssistant = true, Content = "Hi, I'm a helpful assistant, how may I assist you?"})" />
-            @for (var i = 0; i < messages.Count; i++)
+        <div class="messages" role="log" aria-live="polite" aria-relevant="additions" aria-atomic="false">
+            @foreach (var message in ConversationHandler.GetMessages())
             {
-                var id = $"message{i}";
-                var state = messages[i]!;
-                <ChatMessage @key="@id" State="@state" />
+                <ChatMessage @key="message.Id" State="@message" />
             }
         </div>
     </div>
 
-    <form class="write-message" @ref="@writeMessageElement" @onsubmit="@SendMessage">
-        <textarea @bind="@userMessageText" Placeholder="Ask the AI assistant" style="width: 100%; height: 100%;" />
-        <button type="submit">Send</button>
+    @if (!ConversationHandler.GetMessages().Any())
+    {
+        <ChatSuggestions OnSuggestionSelected="@SetSuggestion" />
+    }
+
+    <form class="messages-form" @ref="@writeMessageElement" @onsubmit="@SendMessage" @onsubmit:preventDefault>
+        <div class="messages-form--wrapper">
+            <textarea @bind-value="userMessageText" @bind-value:event="oninput"
+                Placeholder="@L._("Chat.Chat.Placeholder")" class="form-control mb-2 message-form" rows="3"
+                id="expanding-textarea" disabled="@IsLoadingMessage()" />
+            <div class="messages-form--actions">
+                <div class="messages-form--actions--buttons">
+                    @if (!IsLoadingMessage())
+                    {
+                        <button type="submit" class="btn btn-primary btn-gc-design-system"
+                            disabled="@string.IsNullOrWhiteSpace(userMessageText)">
+                            @L._("Chat.Chat.SendButton")
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-danger btn-gc-design-system open-overlay-btn"
+                            @onclick="CancelStreaming">
+                            @L._("Chat.Chat.CancelButton")
+                        </button>
+                    }
+                    <button type="button" class="btn btn-outline btn-gc-design-system" @onclick="ResetConversation"
+                        disabled="@(!ConversationHandler.GetMessages().Any())">
+                        <span class="glyphicon glyphicon-edit" aria-hidden="true"></span> @L._("Chat.Chat.ResetButton")
+                    </button>
+                </div>
+                <div class="messages-form--actions--message">
+                    <span>
+                        <NavLink class="message-link" href="@L._("Pages.About.Url")">@L._("Chat.Chat.Message1")
+                        </NavLink>.
+                        @L._("Chat.Chat.Message2")
+                    </span>
+                </div>
+            </div>
+        </div>
     </form>
+
+    <div @ref="bottomRef" aria-hidden="true"></div>
 </div>

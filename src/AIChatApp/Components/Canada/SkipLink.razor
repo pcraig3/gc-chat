@@ -1,0 +1,29 @@
+@namespace AIChatApp.Components.Canada
+@inherits SharedCultureComponent
+@inject JsonLocalizationService L
+@inject IJSRuntime JS
+
+<nav>
+  <ul id="wb-tphp">
+    <li class="wb-slc">
+      <a class="wb-sl" href="#wb-cont" @onclick="SkipToMainContent"
+        @onclick:preventDefault>@L._("Canada.SkipLink.MainContent")</a>
+    </li>
+  </ul>
+</nav>
+
+<script>
+  window.skipToMainContent = function () {
+    const el = document.getElementById("wb-cont");
+    if (el) {
+      el.focus();
+    }
+  };
+</script>
+
+@code {
+  private async Task SkipToMainContent()
+  {
+    await JS.InvokeVoidAsync("skipToMainContent");
+  }
+}

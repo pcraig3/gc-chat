@@ -1,0 +1,97 @@
+@inject JsonLocalizationService L
+
+<style>
+
+</style>
+
+<section id="@OverlayId" class="wb-overlay modal-content overlay-def wb-popup-mid modal--fit-content" role="dialog"
+  tabindex="-1">
+  <header class="modal-header">
+    <h2 class="modal-title">@L._("ChatHistory.DeleteConversation.Delete")</h2>
+  </header>
+
+  <div class="modal-body">
+    <p>@L._("ChatHistory.DeleteConversation.Confirm") “@DisplayedTitle”?</p>
+    <p>@L._("ChatHistory.DeleteConversation.Warning")</p>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-danger btn-gc-design-system pull-left @(IsDeleted ? "btn-primary--success" : "")"
+      type="button" @onclick="ConfirmDelete" disabled="@IsDeleting">
+      @(
+            IsDeleted
+            ? L._("ChatHistory.DeleteConversation.ModalDeleted")
+            : IsDeleting
+            ? L._("ChatHistory.DeleteConversation.ModalDeleting")
+            : L._("ChatHistory.DeleteConversation.ModalDelete")
+            )
+    </button>
+    <button
+      class="btn btn-outline btn-gc-design-system overlay-close">@L._("ChatHistory.DeleteConversation.ModalCancel")</button>
+  </div>
+</section>
+
+<button type="button" class="btn btn-danger btn-gc-design-system open-overlay-btn" data-overlay-id="@OverlayId"
+  @onclick="OpenModal">
+  @L._("ChatHistory.DeleteConversation.Delete")
+</button>
+
+@code {
+  [Parameter] public string Title { get; set; } = string.Empty;
+  [Parameter] public Guid ConversationId { get; set; }
+  [Parameter] public EventCallback<Guid> OnConfirmed { get; set; }
+  private bool IsDeleting = false;
+  private bool IsDeleted = false;
+  private string DisplayedTitle = string.Empty;
+  [Inject]
+  private IJSRuntime JS { get; set; } = default!;
+  private IJSObjectReference? _module;
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      try
+      {
+        _module = await JS.InvokeAsync<IJSObjectReference>("import", "/js/overlay.js");
+        await _module.InvokeVoidAsync("wbInitOverlay", OverlayId);
+      }
+      catch (JSDisconnectedException)
+      {
+        // Safe to ignore during prerendering
+      }
+    }
+  }
+
+  private string OverlayId => $"delete-convo-{ConversationId}";
+
+  private async Task OpenModal()
+  {
+    DisplayedTitle = Title; // snapshot before deletion
+
+    if (_module is not null)
+    {
+      await _module.InvokeVoidAsync("wbInitOverlay", OverlayId);
+    }
+
+    StateHasChanged();
+  }
+  private async Task ConfirmDelete()
+  {
+    IsDeleting = true;
+
+    await OnConfirmed.InvokeAsync(ConversationId);
+
+    IsDeleted = true;
+    StateHasChanged();
+
+    await Task.Delay(1200);
+
+    if (_module is not null)
+    {
+      await _module.InvokeVoidAsync("wbCloseOverlay", OverlayId);
+    }
+
+    IsDeleting = false;
+    IsDeleted = false;
+  }
+}

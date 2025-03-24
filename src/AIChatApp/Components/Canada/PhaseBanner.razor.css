@@ -1,0 +1,26 @@
+.alpha-top {
+  font-size: 14px;
+  padding: 15px 0;
+  background-color: #f2f2f2;
+}
+
+.alpha-top .container {
+  display: flex;
+}
+
+.alpha-top .label-warning {
+  background-color: #f90;
+  border-width: 2px;
+  text-transform: uppercase;
+  height: 100%;
+}
+
+.alpha-top .label-warning + span {
+  line-height: 1.2;
+}
+
+@media (min-width: 576px) {
+  .alpha-top {
+    font-size: 16px;
+  }
+}

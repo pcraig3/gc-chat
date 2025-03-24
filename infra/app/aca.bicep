@@ -13,6 +13,12 @@ param openAiApiVersion string
 @secure()
 param openAiKey string = ''
 
+param cosmosAccountName string
+param cosmosDatabaseName string
+param cosmosContainerName string
+param storageAccountName string
+param storageContainerName string
+
 resource acaIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: identityName
   location: location
@@ -40,18 +46,42 @@ var env = [
     name: 'AZURE_CLIENT_ID'
     value: acaIdentity.properties.clientId
   }
+  {
+    name: 'AZURE_COSMOSDB_ACCOUNT_NAME'
+    value: cosmosAccountName
+  }
+  {
+    name: 'AZURE_COSMOSDB_DATABASE_NAME'
+    value: cosmosDatabaseName
+  }
+  {
+    name: 'AZURE_COSMOSDB_CONTAINER_NAME'
+    value: cosmosContainerName
+  }
+  {
+    name: 'STORAGE_ACCOUNT_NAME'
+    value: storageAccountName
+  }
+  {
+    name: 'STORAGE_CONTAINER_NAME'
+    value: storageContainerName
+  }
 ]
 
-var envWithSecret = !empty(openAiKey) ? union(env, [
-  {
-    name: 'AZURE_OPENAI_KEY'
-    secretRef: 'azure-openai-key'
-  }
-]) : env
+var envWithSecret = !empty(openAiKey)
+  ? union(env, [
+      {
+        name: 'AZURE_OPENAI_KEY'
+        secretRef: 'azure-openai-key'
+      }
+    ])
+  : env
 
-var secrets = !empty(openAiKey) ? {
-  'azure-openai-key': openAiKey
-} : {}
+var secrets = !empty(openAiKey)
+  ? {
+      'azure-openai-key': openAiKey
+    }
+  : {}
 
 module app '../core/host/container-app-upsert.bicep' = {
   name: '${serviceName}-container-app-module'

@@ -1,6 +1,6 @@
 {
-    "name": "ai-chat-quickstart-csharp",
-    "image": "mcr.microsoft.com/devcontainers/dotnet:1-8.0",
+    "name": "gc-chat",
+    "image": "mcr.microsoft.com/devcontainers/dotnet:1-9.0",
     "features": {
         "ghcr.io/devcontainers/features/azure-cli:1": {
             "installBicep": true,

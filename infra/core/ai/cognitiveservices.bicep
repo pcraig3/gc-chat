@@ -8,19 +8,18 @@ param disableLocalAuth bool = false
 param deployments array = []
 param kind string = 'OpenAI'
 
-@allowed([ 'Enabled', 'Disabled' ])
+@allowed(['Enabled', 'Disabled'])
 param publicNetworkAccess string = 'Enabled'
-param sku object = {
-  name: 'S0'
-}
 
 param allowedIpRules array = []
-param networkAcls object = empty(allowedIpRules) ? {
-  defaultAction: 'Allow'
-} : {
-  ipRules: allowedIpRules
-  defaultAction: 'Deny'
-}
+param networkAcls object = empty(allowedIpRules)
+  ? {
+      defaultAction: 'Allow'
+    }
+  : {
+      ipRules: allowedIpRules
+      defaultAction: 'Deny'
+    }
 
 resource account 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   name: name
@@ -33,22 +32,32 @@ resource account 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
     networkAcls: networkAcls
     disableLocalAuth: disableLocalAuth
   }
-  sku: sku
+  sku: {
+    name: 'S0'
+  }
 }
 
 @batchSize(1)
-resource deployment 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = [for deployment in deployments: {
-  parent: account
-  name: deployment.name
-  properties: {
-    model: deployment.model
-    raiPolicyName: contains(deployment, 'raiPolicyName') ? deployment.raiPolicyName : null
+resource deployment 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = [
+  for d in deployments: {
+    parent: account
+    name: d.name
+    // Capacity is in thousands of tokens per minute (1 = 1K TPM)
+    sku: contains(d, 'capacity')
+      ? {
+          name: 'Standard'
+          capacity: int(d.capacity) // e.g., 50 => 50K TPM
+        }
+      : {
+          name: 'Standard'
+          capacity: 1 // default to 1K TPM if not provided
+        }
+    properties: {
+      model: d.model
+      raiPolicyName: contains(d, 'raiPolicyName') ? d.raiPolicyName : null
+    }
   }
-  sku: contains(deployment, 'sku') ? deployment.sku : {
-    name: 'Standard'
-    capacity: 20
-  }
-}]
+]
 
 output endpoint string = account.properties.endpoint
 output endpoints object = account.properties.endpoints

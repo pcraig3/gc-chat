@@ -1,0 +1,114 @@
+@inject NavigationManager NavigationManager
+@inject JsonLocalizationService L
+
+<style>
+  #wb-lng {
+    padding-top: 20px;
+  }
+</style>
+
+@if (OppositeUrl != "#")
+{
+  <div id="wb-lng" class="col-xs-3 col-sm-7 col-md-8 pull-right text-right">
+    <h2 class="wb-inv">@L._("Canada.LanguageSwitcher.Heading")</h2>
+    <ul class="list-inline mrgn-bttm-0">
+      <li>
+        <a href="@OppositeUrl" lang="@OppositeCulture" hreflang="@OppositeCulture">
+          <span class="hidden-xs">@OppositeLanguageName</span>
+          <abbr title="@OppositeLanguageName"
+            class="visible-xs h3 mrgn-tp-sm mrgn-bttm-0 text-uppercase">@OppositeCulture</abbr>
+        </a>
+      </li>
+    </ul>
+  </div>
+}
+
+@code {
+  [CascadingParameter(Name = "Culture")]
+  public string Culture { get; set; } = "en";
+
+  private string OppositeCulture => Culture == "fr" ? "en" : "fr";
+  private string OppositeLanguageName => Culture == "fr" ? "English" : "Français";
+
+  private static readonly Dictionary<string, string> RouteMap = new()
+  {
+    ["/en/chat"] = "/fr/chat",
+    ["/fr/chat"] = "/en/chat",
+    ["/en/about"] = "/fr/a-propos",
+    ["/fr/a-propos"] = "/en/about",
+    ["/en/admin/feedback"] = "/fr/admin/commentaires",
+    ["/fr/admin/commentaires"] = "/en/admin/feedback",
+    ["/en/documents"] = "/fr/documents",
+    ["/fr/documents"] = "/en/documents",
+    ["/en/chat-history"] = "/fr/historique-du-chat",
+    ["/fr/historique-du-chat"] = "/en/chat-history",
+  };
+
+  private string? currentPath;
+  private string OppositeUrl => GetOppositeUrl(currentPath);
+
+
+  protected override void OnInitialized()
+  {
+    currentPath = new Uri(NavigationManager.Uri).AbsolutePath;
+    NavigationManager.LocationChanged += HandleLocationChanged;
+  }
+
+  private void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+  {
+    currentPath = new Uri(e.Location).AbsolutePath;
+    InvokeAsync(StateHasChanged);
+  }
+
+  private string GetOppositeUrl(string? path)
+  {
+    if (string.IsNullOrWhiteSpace(path))
+      return "#";
+
+    if (RouteMap.TryGetValue(path, out var staticMatch))
+      return staticMatch;
+
+    return GetOppositeUrlGuid(path);
+  }
+
+  /// <summary>
+  /// Attempts to construct an opposite language URL when the current path
+  /// includes a GUID (e.g., /en/chat/{id}) that doesn't match any static route.
+  /// </summary>
+  /// <param name="path">The current request path (e.g., /en/chat/abc123-guid)</param>
+  /// <returns>
+  /// A translated path with the opposite culture prefix and the same GUID,
+  /// or "#" if no match is found.
+  /// </returns>
+  private string GetOppositeUrlGuid(string path)
+  {
+    // Iterate through the static route mappings
+    foreach (var kvp in RouteMap)
+    {
+      var prefix = kvp.Key;
+
+      // Check if the current path starts with a known static route prefix plus a slash
+      if (path.StartsWith(prefix + "/"))
+      {
+        // Extract the remaining portion of the URL after the prefix (expected to be a GUID)
+        var remainder = path[(prefix.Length + 1)..];
+
+        // If the remainder is a valid GUID, we assume it's a dynamic chat route
+        if (Guid.TryParse(remainder, out _))
+        {
+          // Replace the prefix with the opposite language version
+          var oppositePrefix = kvp.Value;
+          return $"{oppositePrefix}/{remainder}";
+        }
+      }
+    }
+
+    // No match found — fallback to "#" to disable the language switch link
+    return "#";
+  }
+
+  public void Dispose()
+  {
+    NavigationManager.LocationChanged -= HandleLocationChanged;
+  }
+}

@@ -1,0 +1,27 @@
+.modal-body textarea {
+  width: 100%;
+  border-radius: 5px;
+  padding-right: 70px;
+  scrollbar-width: none;
+  border: 2px solid #5c5c5c;
+  font-size: 100%;
+}
+
+.modal-body textarea:focus,
+.modal-body textarea:focus-visible {
+  outline: 2.5px solid #0040dd;
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.modal-body .btn--send[disabled] {
+  opacity: 0.65;
+}
+
+.modal-body details {
+  margin-bottom: 20px;
+}
+
+.modal-footer {
+  display: none;
+}

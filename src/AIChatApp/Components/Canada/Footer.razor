@@ -1,0 +1,63 @@
+@namespace AIChatApp.Components.Canada
+@inherits SharedCultureComponent
+@inject JsonLocalizationService L
+@inject DocumentService DocumentService
+@inject DatabaseService DatabaseService
+@inject UserService UserService
+
+<!-- Static footer begins -->
+<footer id="wb-info">
+  <h2 class="wb-inv">@L._("Canada.Footer.AboutThisSite")</h2>
+  <div class="gc-contextual">
+    <div class="container">
+      <nav>
+        <h3>@L._("Pages.Home.Title")</h3>
+        <ul class="list-col-xs-1 list-col-sm-2 list-col-md-3">
+          <li>
+            <NavLink href="@L._("Pages.About.Url")">
+              @L._("Pages.About.Title")
+            </NavLink>
+          </li>
+          @if (DocumentService.IsInitialized())
+          {
+            <li>
+              <NavLink href="@L._("Pages.Documents.Url")">
+                @L._("Pages.Documents.Title")
+              </NavLink>
+            </li>
+          }
+          @if (DatabaseService.IsInitialized() && UserService.IsUserAvailable())
+          {
+            <li>
+              <NavLink href="@L._("Pages.ChatHistory.Url")">
+                @L._("Pages.ChatHistory.Title")
+              </NavLink>
+            </li>
+          }
+        </ul>
+      </nav>
+    </div>
+  </div>
+  <div class="gc-sub-footer">
+    <div class="container d-flex align-items-center">
+      <nav>
+        <h3 class="wb-inv">@L._("Canada.Footer.GovernmentTitle")</h3>
+        <ul>
+          <li><a href="@L._("Canada.Footer.SocialMediaUrl")">@L._("Canada.Footer.SocialMedia")</a>
+          </li>
+          <li><a href="@L._("Canada.Footer.MobileAppsUrl")">@L._("Canada.Footer.MobileApps")</a>
+          </li>
+          <li><a href="@L._("Canada.Footer.AboutUrl")">@L._("Canada.Footer.About")</a></li>
+          <li><a href="@L._("Canada.Footer.TermsUrl")">@L._("Canada.Footer.Terms")</a></li>
+          <li><a href="@L._("Canada.Footer.PrivacyUrl")">@L._("Canada.Footer.Privacy")</a></li>
+        </ul>
+      </nav>
+
+      <div class="wtrmrk align-self-end">
+        <img src="https://wet-boew.github.io/themes-dist/GCWeb/GCWeb/assets/wmms-blk.svg"
+          alt="@L._("Canada.Footer.GovernmentSymbol")" />
+      </div>
+    </div>
+  </div>
+</footer>
+<!-- Static footer ends -->

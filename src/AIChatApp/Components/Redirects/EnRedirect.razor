@@ -1,0 +1,10 @@
+@page "/"
+@page "/en"
+@inject NavigationManager NavigationManager
+
+@code {
+  protected override void OnInitialized()
+  {
+    NavigationManager.NavigateTo("/en/chat", forceLoad: true);
+  }
+}

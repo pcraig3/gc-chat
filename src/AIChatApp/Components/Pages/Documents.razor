@@ -1,0 +1,115 @@
+@inherits SharedCultureComponent
+@page "/{culture}/documents"
+@inject JsonLocalizationService L
+@inject DocumentService DocumentService
+@inject IJSRuntime JS
+
+<PageTitle>@L._("Pages.Documents.Title") — @L._("Pages.Home.Title")</PageTitle>
+
+<article class="content page page--documents">
+  <p>
+    <NavLink href="@($"/{CurrentCulture}/chat")">
+      <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> @L._("Pages.ChatHistory.Back")
+    </NavLink>
+  </p>
+
+  <h1 id="wb-cont" class="mt-2 mb-3" tabindex="-1">@L._("Pages.Documents.Title")</h1>
+
+  <p>@L._("Pages.Documents.Paragraph1")</p>
+
+  <p>
+    @((MarkupString)@L._("Pages.Documents.Paragraph2"))
+  </p>
+
+  @if (Blobs is null)
+  {
+    <p>@L._("Pages.Documents.Loading")</p>
+  }
+  else if (!Blobs.Any())
+  {
+    <p>@L._("Pages.Documents.NoDocuments")</p>
+  }
+  else
+  {
+    <h2 class="mb-3">@L._("Pages.Documents.TableHeading")</h2>
+    <table class="wb-tables table table-striped" data-wb-tables='{ "ordering" : false }'>
+      <thead>
+        <tr>
+          <th>File name</th>
+          <th>Size</th>
+          <th>Last modified</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var blob in Blobs)
+        {
+          <tr>
+            <td>
+              <a href="@($"/files/{Uri.EscapeDataString(blob.Name)}")" target="_blank">
+                @blob.Name
+              </a>
+            </td>
+            <td class="center">
+              @FormatSize(blob.Size)
+            </td>
+            <td class="center">
+              @FormatDate(blob.LastModified)
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</article>
+
+@code {
+  private List<BlobMetadata>? Blobs;
+  private IJSObjectReference? _tableModule;
+
+  protected override async Task OnInitializedAsync()
+  {
+    try
+    {
+      Blobs = await DocumentService.GetDocumentListAsync();
+    }
+    catch
+    {
+      Blobs = new(); // fallback to empty list
+    }
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (Blobs?.Any() == true)
+    {
+      try
+      {
+        _tableModule ??= await JS.InvokeAsync<IJSObjectReference>("import", "/js/tables.js");
+        await _tableModule.InvokeVoidAsync("initializeWetTables");
+        await _tableModule.InvokeVoidAsync("patchPaginationLinks");
+      }
+      catch (JSDisconnectedException)
+      {
+        // Ignore during prerendering
+      }
+    }
+  }
+
+  private string FormatDate(DateTime? dt)
+  {
+    return dt.HasValue
+    ? dt.Value.ToLocalTime().ToString("yyyy-MM-dd")
+    : "—";
+  }
+
+  private string FormatSize(long? sizeInBytes)
+  {
+    if (sizeInBytes is null)
+      return "—";
+
+    double size = sizeInBytes.Value;
+    return size >= 1024 * 1024
+    ? $"{size / (1024 * 1024):0.##} MB"
+    : $"{size / 1024:0.##} KB";
+  }
+}

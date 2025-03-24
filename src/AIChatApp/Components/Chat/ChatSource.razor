@@ -1,0 +1,41 @@
+@inject JsonLocalizationService L
+
+<section id="@OverlayId" class="wb-overlay modal-content overlay-def wb-popup-mid" role="dialog" tabindex="-1">
+  <header class="modal-header">
+    <h2 class="modal-title">@Source.Title</h2>
+  </header>
+  <div class="modal-body">
+    <dl>
+      @if (BlobServiceClient is not null)
+      {
+        <dt>@L._("Chat.ChatSource.Link")</dt>
+        <dd>
+          <a href="/files/@GetFilename(Source.Url)" target="_blank">
+            @GetFilename(Source.Url)
+            (@GetFileSize(Source.Size)) <span class="glyphicon glyphicon-save" aria-hidden="true"></span>
+          </a>
+        </dd>
+      }
+      @if (!string.IsNullOrWhiteSpace(Source.Culture) && Source.Culture.ToLower() != "unknown")
+      {
+        <dt>@L._("Chat.ChatSource.Language")</dt>
+        <dd>@Source.Culture</dd>
+      }
+    </dl>
+    <h3 class="h4">@L._("Chat.ChatSource.Content")</h3>
+    <pre class="prettyprint">@Source.Chunk</pre>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary btn-gc-design-system overlay-close" type="button">
+      @L._("Chat.ChatSource.CloseOverlay")
+    </button>
+  </div>
+</section>
+
+<button type="button" class="fn-lnk open-overlay-btn" data-overlay-id="@OverlayId">
+  <span class="source-title">@Source.Title</span>
+  @if (!string.IsNullOrWhiteSpace(Source.Culture) && Source.Culture.ToLower() != "unknown")
+  {
+    <span class="label label-warning">@Source.Culture.ToUpperInvariant()</span>
+  }
+</button>

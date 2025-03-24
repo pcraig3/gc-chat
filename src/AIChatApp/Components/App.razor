@@ -1,21 +1,39 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html class="no-js" lang="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" dir="ltr">
 
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <base href="/" />
-    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
-    <link rel="stylesheet" href="app.css" />
-    <link rel="stylesheet" href="AIChatApp.styles.css" />
-    <link rel="icon" type="image/png" href="favicon.png" />
-    <HeadOutlet @rendermode="@PageRenderMode" />
-</head>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <base href="/" />
+        <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
 
-<body>
-    <Routes @rendermode="@PageRenderMode"/>
-    <script src="_framework/blazor.web.js"></script>
-</body>
+        <!-- favicon setup -->
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <meta name="apple-mobile-web-app-title" content="GC Chat" />
+        <link rel="manifest" href="/site.webmanifest">
+
+        <!-- using GCWeb 16.7.0 -->
+        <link rel="stylesheet" href="/GCWeb/css/theme.min.css" />
+        <noscript>
+            <link rel="stylesheet" href="/wet-boew/css/noscript.min.css" />
+        </noscript>
+
+        <link rel="stylesheet" href="/css/app.css" />
+        <link rel="stylesheet" href="AIChatApp.styles.css" />
+        <HeadOutlet @rendermode="@PageRenderMode" />
+    </head>
+
+    <body vocab="http://schema.org/" typeof="WebPage">
+        <Routes @rendermode="@PageRenderMode" />
+
+        <script src="_framework/blazor.web.js"></script>
+
+        <!-- using GCWeb 16.5.0 -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.js"></script>
+        <script src="/wet-boew/js/wet-boew.min.js"></script>
+        <script src="/GCWeb/js/theme.min.js"></script>
+    </body>
+
 
 </html>
 

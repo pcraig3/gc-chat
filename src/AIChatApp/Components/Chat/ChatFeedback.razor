@@ -1,0 +1,44 @@
+@inject JsonLocalizationService L
+
+<section id="@OverlayId" class="wb-overlay modal-content overlay-def wb-popup-mid overlay--feedback modal--fit-content"
+  role="dialog" tabindex="-1">
+  <header class="modal-header">
+    <h2 class="modal-title">
+      @(Positive? L._("Chat.ChatFeedback.HeaderPositive") : L._("Chat.ChatFeedback.HeaderNegative"))
+    </h2>
+  </header>
+
+  <div class="modal-body">
+    <p>@((MarkupString)(Positive? L._("Chat.ChatFeedback.IntroductionPositive") :
+            L._("Chat.ChatFeedback.IntroductionNegative")))</p>
+    <details>
+      <summary>
+        <span>@L._("Chat.ChatFeedback.Summary")</span>
+      </summary>
+      <label for="@($"{OverlayId}-textarea")">@(Positive? L._("Chat.ChatFeedback.LabelPostive") :
+                L._("Chat.ChatFeedback.LabelNegative"))</label>
+      <textarea id="@($"{OverlayId}-textarea")"
+        placeholder="@(Positive? L._("Chat.ChatFeedback.PlaceholderPositive") : L._("Chat.ChatFeedback.PlaceholderNegative"))"
+        class="form-control" rows="2" @bind="FeedbackText"></textarea>
+    </details>
+    <button class="btn btn-primary btn-gc-design-system @(IsFeedbackSent ? "btn-primary--success" : "")" type="button"
+      @onclick="SubmitFeedback" disabled="@IsSubmitting">
+      @(IsFeedbackSent
+            ? L._("Chat.ChatFeedback.Sent")
+            : IsSubmitting
+            ? L._("Chat.ChatFeedback.Sending")
+            : Positive ? L._("Chat.ChatFeedback.SendPositive") : L._("Chat.ChatFeedback.SendNegative")) </button>
+  </div>
+  <div class="modal-footer">
+    <span>footer</span>
+  </div>
+</section>
+
+<button type="button"
+  class="btn btn-outline btn-outline-default btn-gc-design-system open-overlay-btn @(Positive ? "btn-outline-default--success" : "btn-outline-default--fail")"
+  data-overlay-id="@OverlayId" disabled="@Disabled">
+  <span class="sr-only">
+    @(Positive? L._("Chat.ChatFeedback.SendPositive") : L._("Chat.ChatFeedback.SendNegative"))
+  </span>
+  <span class="glyphicon @(Positive ? "glyphicon-thumbs-up" : "glyphicon-thumbs-down")" aria-hidden="true"></span>
+</button>

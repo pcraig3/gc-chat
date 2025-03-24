@@ -1,30 +1,31 @@
-﻿@page "/Error"
+﻿@page "/{culture}/Error"
 @using System.Diagnostics
+@inject JsonLocalizationService L
 
-<PageTitle>Error</PageTitle>
+<PageTitle>@L._("Pages.Error.Title") — @L._("Pages.Home.Title")</PageTitle>
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<h1 class="text-danger" property="name" id="wb-cont" tabindex="-1">@L._("Pages.Error.Heading")</h1>
+<h2 class="text-danger">@L._("Pages.Error.Subheading")</h2>
 
 @if (ShowRequestId)
 {
     <p>
-        <strong>Request ID:</strong> <code>@RequestId</code>
+        <strong>@L._("Pages.Error.RequestIdLabel")</strong> <code>@RequestId</code>
     </p>
 }
 
-<h3>Development Mode</h3>
+<h3>@L._("Pages.Error.DevelopmentModeHeading")</h3>
 <p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
+    @L._("Pages.Error.DevelopmentModeInfo")
 </p>
 <p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
+    @L._("Pages.Error.SecurityWarning")
 </p>
 
-@code{
+@code {
+    [Parameter]
+    public string? Culture { get; set; }
+
     [CascadingParameter]
     private HttpContext? HttpContext { get; set; }
 
@@ -32,5 +33,5 @@
     private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
 
     protected override void OnInitialized() =>
-        RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
+    RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
 }

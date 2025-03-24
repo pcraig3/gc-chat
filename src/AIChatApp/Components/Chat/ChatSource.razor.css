@@ -1,0 +1,44 @@
+button.fn-lnk {
+  padding: 6px 10px;
+  padding-right: 6px;
+  margin-left: 0;
+  border-radius: 3px;
+  white-space: unset;
+  text-align: left;
+}
+
+button.fn-lnk .source-title {
+  text-decoration: underline;
+}
+
+button.fn-lnk span.label {
+  margin-left: 6px;
+  padding: 0.2em 0.6em;
+}
+
+section.wb-popup-mid.open {
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+}
+
+section.wb-popup-mid.open > div.modal-body {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+section.wb-popup-mid.open > div.modal-body dl {
+  margin-bottom: 1rem;
+}
+
+section.wb-popup-mid.open > div.modal-body h3 {
+  margin-top: 0;
+}
+
+section.wb-popup-mid.open > div.modal-body pre {
+  white-space: pre-line;
+  flex: 1 1 auto;
+  overflow: auto;
+  margin: 0;
+}
