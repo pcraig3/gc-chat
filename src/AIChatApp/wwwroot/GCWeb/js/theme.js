@@ -1,7 +1,7 @@
 /*!
  * @title Web Experience Toolkit (WET) / Boîte à outils de l'expérience Web (BOEW)
  * @license wet-boew.github.io/wet-boew/License-en.html / wet-boew.github.io/wet-boew/Licence-fr.html
- * v16.7.0 - 2025-06-04
+ * v17.5.0 - 2025-09-23
  *
  */( function( $, document, wb ) {
 "use strict";
@@ -4181,12 +4181,6 @@ wb.add( selector );
 
 } )( jQuery, wb );
 
-// If GC-ministers, GC-institution, and Services & information are present and the page doesn't already have "page-type-ilp" class
-if ( document.querySelector( ".gc-minister" ) && !document.body.classList.contains( "page-type-ilp" ) && document.querySelector( ".gc-srvinfo" ) && document.querySelector( ".list-unstyled.bold-content.mrgn-tp-lg.lst-spcd-2.colcount-md-2" ) ) {
-	document.body.classList.add( "page-type-ilp" );
-	console.warn( "It seems that this page is an institutional landing page. However, the <body> element is missing the \"page-type-ilp\" CSS class. It has been added for your convenience, but please make sure you follow the technical guidance: https://wet-boew.github.io/GCWeb/templates/institutional-landing/institutional-landing-doc-en.html" );
-}
-
 // If in the news page and still in version 4.0, make necessary changes for 4.0.1
 if ( document.querySelector( ".nws-tbl" ) && document.querySelector( "details summary h2.h4" ) ) {
 	let fltrNewsTitle = document.querySelector( "details summary h2.h4" ),
@@ -4220,16 +4214,21 @@ var $document = wb.doc,
 
 		if ( elm && event.currentTarget === event.target ) {
 
-			let themeMenuBtn = document.querySelector( "#menuBtn" ),
+			let themeMenuBtn = document.querySelector( "#menu-btn" ),
 				themeMenuIcon = themeMenuBtn.querySelector( ".glyphicon" ),
-				themeNavUL = document.querySelector( "#gridContainer > nav ul" ),
-				activePageLink = themeNavUL.querySelector( ".active a" );
+				$themeNav = $( "#theme-nav" ),
+				themeNavUL = document.querySelector( "#theme-nav ul" );
+
 
 			themeNavUL.id = themeNavUL.id || wb.getId();
-			activePageLink.setAttribute( "aria-current", "page" );
+			$themeNav.trigger( "navcurr.wb" ); // Highlight the current page in the menu
 			themeMenuBtn.setAttribute( "aria-controls", themeNavUL.id );
 			themeMenuBtn.setAttribute( "aria-expanded", "false" );
 			themeMenuIcon.setAttribute( "aria-hidden", "true" );
+
+			if ( themeNavUL.querySelector( ".wb-navcurr" ) ) {
+				themeNavUL.querySelector( ".wb-navcurr" ).setAttribute( "aria-current", "page" );
+			}
 
 			// Identify that initialization has completed
 			wb.ready( $( elm ), componentName );

@@ -44,6 +44,7 @@ It shows:
 - [Getting started](#getting-started)
   - [Local development](#local-development)
   - [Deploying GC Chat on Azure](#deploying-gc-chat-on-azure)
+  - [Updating GCWeb](#updating-gcweb)
 - [Resources](#resources)
 
 ## Features
@@ -246,6 +247,21 @@ This step will:
 When finished, the command output will include the public Container App URL. Open it in your browser to use the app.
 
 In future, when you've made any changes to the app code, you can just run `azd deploy` again and your new changes will be deployed.
+
+### Updating GCWeb
+
+GC Chat uses [GCWeb](https://wet-boew.github.io/GCWeb/index-en.html) assets to match the Canada.ca design.
+
+To update GCWeb assets, grab the latest release of GCWeb, unzip the latest build, and then move the various assests into the appropriate `src/AIChatApp/wwwroot/GCWeb` folders.
+
+Instructions for updating GCWeb:
+
+1. Find the latest GCWeb release on GitHub: https://github.com/wet-boew/GCWeb/releases (eg, here is the release tag for 17.5.0: https://github.com/wet-boew/GCWeb/releases/tag/v17.5.0)
+2. Scroll down to "Assets", download the `themes-dist*.zip` file
+3. Unzip it
+4. Open `/GCWeb` directory and copy everything inside into this folder: `src/AIChatApp/wwwroot/GCWeb`
+5. Boot up the app and check for visual changes
+6. If you see any noticeable differences that you want to revert, add custom CSS to `src/AIChatApp/wwwroot/css/app.css`
 
 ## Resources
 

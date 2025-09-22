@@ -1,7 +1,7 @@
 /*!
  * Web Experience Toolkit (WET) / Boîte à outils de l'expérience Web (BOEW)
  * wet-boew.github.io/wet-boew/License-en.html / wet-boew.github.io/wet-boew/Licence-fr.html
- * v4.0.88.1 - 2025-06-04
+ * v4.0.91 - 2025-09-09
  *
  */
 
@@ -4493,7 +4493,7 @@ var componentName = "wb-calevt",
 			i, appendData;
 
 		appendData = function( data ) {
-			$ajaxContainer.append( $.trim( data ) );
+			$ajaxContainer.append( String( data ).trim() );
 		};
 
 		for ( i = 0; i < len; i += 1 ) {
@@ -5582,7 +5582,7 @@ var componentName = "wb-charts",
 							"/getcellvalue": function( elem ) {
 
 								// Get the number from the data cell, #3267
-								var cellValue = $.trim( elem.dataset.wbChartsValue || $( elem ).text() );
+								var cellValue = String( elem.dataset.wbChartsValue || $( elem ).text() ).trim();
 								return [
 									parseFloat( cellValue.replace( /(\d{1,3}(?:(?: |,)\d{3})*)(?:(?:.|,)(\d{1,2}))?$/, function( a, b, c ) {
 										return b.replace( / |,/g, "" ) + "." + c || "0";
@@ -7436,13 +7436,12 @@ wb.add( selector );
 * not once per instance of plugin on the page. So, this is a good place to define
 * variables that are common to all instances of the plugin on a page.
 */
-var componentName = "wb-details-close",
-	selector = ".provisional." + componentName,
+const componentName = "wb-details-close",
+	selector = "." + componentName,
 	initEvent = "wb-init" + selector,
 	$document = wb.doc,
 	views = [ "xxs", "xs", "sm", "md", "lg", "xl" ],
-	viewsClass = [ "xxsmallview", "xsmallview", "smallview", "mediumview", "largeview", "xlargeview" ],
-	breakpoint,
+	viewsClasses = [ "xxsmallview", "xsmallview", "smallview", "mediumview", "largeview", "xlargeview" ],
 
 	/**
 	 * @method init
@@ -7453,45 +7452,23 @@ var componentName = "wb-details-close",
 		// Start initialization
 		// returns DOM object = proceed with init
 		// returns undefined = do not proceed with init (e.g., already initialized)
-		var elm = wb.init( event, componentName, selector ),
-			$elm, i;
+		let elm = wb.init( event, componentName, selector );
 
 		if ( elm ) {
-			$elm = $( elm );
+			let $elm = $( elm ),
+				breakpoint = elm.dataset.breakpoint || "sm", // Get the target breakpoint from data attribute or default to "sm"
+				viewBreakpointIndex = views.indexOf( breakpoint ), // Get the index of the target breakpoint
+				viewBreakpoint = viewsClasses.slice( 0, viewBreakpointIndex + 1 ), // Get the target and smaller view classes
+				viewsSelector = "html." + viewBreakpoint.join( ", html." ); // Create a selector for the target and smaller views
 
-			// Get the plugin JSON configuration set on attribute data-wb-details-close
-			// Will define one set settings for all .wb-details-close on the page
-			breakpoint = $elm.data( "breakpoint" ) || "sm";
-
-			// reset breakpoint if config is passed
-			if ( views.length === viewsClass.length ) {
-				i = views.indexOf( breakpoint );
-				viewsClass = viewsClass.slice( 0, i + 1 );
+			// If within the targetted views, keep details closed. If not, keep opened.
+			if ( document.querySelector( viewsSelector ) ) {
+				elm.removeAttribute( "open" );
+			} else {
+				elm.setAttribute( "open", "" );
 			}
 
-			hideOnBreakpoint();
-
-			// Identify that initialization has completed
 			wb.ready( $elm, componentName );
-		}
-	},
-
-	/**
-	 * Toggle details depending on breakpoint
-	 * @method hideOnBreakpoint
-	 * @param {jQuery DOM element | jQuery Event} $elm Element targetted by this plugin, which is the details
-	 */
-	hideOnBreakpoint = function() {
-		var $elm = $( selector ),
-			viewsSelector = "html." + viewsClass.join( ", html." );
-
-		// If within the targetted views, keep details closed
-		if ( $( viewsSelector ).length ) {
-			$elm.removeAttr( "open" );
-		} else {
-
-			// If not, keep opened
-			$elm.attr( "open", "" );
 		}
 	};
 
@@ -9003,14 +8980,6 @@ var componentName = "wb-filter",
 				};
 			}
 
-			Modernizr.addTest( "stringnormalize", "normalize" in String );
-			Modernizr.load( {
-				test: Modernizr.stringnormalize,
-				nope: [
-					"site!deps/unorm" + wb.getMode() + ".js"
-				]
-			} );
-
 			if ( !elm.id ) {
 				elm.id = wb.getId();
 			}
@@ -9038,7 +9007,7 @@ var componentName = "wb-filter",
 				if ( settings.source ) {
 					console.warn( componentName + ": " + "the 'source' option is not compatible with the 'uiTemplate' option. If both options are defined, only 'uiTemplate' will be registered." );
 				}
-			} else {
+			} else if ( !document.querySelector( "input#" + elm.id + "-inpt" ) ) {
 				inptId = elm.id + "-inpt";
 				filterUI = $( "<div class=\"input-group\">" +
 					"<label for=\"" + inptId + "\" class=\"input-group-addon\"><span class=\"glyphicon glyphicon-filter\" aria-hidden=\"true\"></span> " + i18nText.filter_label + "</label>" +
@@ -9157,7 +9126,13 @@ var componentName = "wb-filter",
 
 		for ( i = 0; i < itemsLength; i += 1 ) {
 			$item = $items.eq( i );
-			text = unAccent( $item.text() );
+
+			// Get the text content of the item, either from the shadow DOM or directly
+			if ( $item[ 0 ].shadowRoot ) {
+				text = unAccent( $item[ 0 ].shadowRoot.textContent );
+			} else {
+				text = unAccent( $item.text() );
+			}
 
 			if ( !searchFilterRegularExp.test( text ) ) {
 				if ( hndParentSelector ) {
@@ -9172,8 +9147,9 @@ var componentName = "wb-filter",
 		}
 		fCallBack.apply( this, arguments );
 
-		$elm.trigger( "wb-contentupdated" );
+		$elm.trigger( "wb-filtered" );
 	},
+
 	filterCallback = function( $field, $elm, settings ) {
 		var $sections =	$elm.find( settings.section ),
 			sectionsLength = $sections.length,
@@ -9197,7 +9173,20 @@ $document.on( "keyup", selectorInput, function( event ) {
 		clearTimeout( wait );
 	}
 	wait = setTimeout( filter.bind( this, $input, $elm, $elm.data() ), 250 );
+} );
 
+// Reinitialize filter if content on the page has been updated by another plugin
+$document.on( "wb-contentupdated", selector + ", " + selector + " *", function()  {
+	let that = this;
+
+	if ( wait ) {
+		clearTimeout( wait );
+	}
+
+	wait = setTimeout( function() {
+		that.classList.remove( "wb-init", componentName + "-inited" );
+		$( that ).trigger( "wb-init." + componentName );
+	}, 100 );
 } );
 
 $document.on( "timerpoke.wb " + initEvent, selector, init );
@@ -12079,6 +12068,15 @@ $document.on( initializedEvent, selector, function( event ) {
 			// Defaults config set on the video element
 			data.isInitMuted = $media.get( 0 ).muted;
 
+			// Set default Youtube video dimensions if none specified
+			if ( $media[ 0 ].width && $media[ 0 ].height ) {
+				data.width = $media[ 0 ].width;
+				data.height = $media[ 0 ].height;
+			} else {
+				data.width = 640;
+				data.height = 360;
+			}
+
 			if ( youTube.ready === false ) {
 				$document.one( youtubeReadyEvent, function() {
 					$this.trigger( youtubeEvent, data );
@@ -13365,8 +13363,8 @@ $document.on( "click", "." + pagerClass + " button", function()  {
 
 } );
 
-// Resets items and pagination
-$document.on( "wb-contentupdated", selector, function() {
+// Resets items and pagination on filter or if content is updated
+$document.on( "wb-contentupdated wb-filtered", selector, function() {
 	this.pgSettings.currPage = 1;
 	this.pgSettings.items = this.pgSettings.items = this.querySelectorAll( ( this.pgSettings.section || ":scope" ) + " " + this.pgSettings.selector + notFilterClassSel );
 
@@ -13585,7 +13583,7 @@ var $document = wb.doc,
 				<div class="modal-footer">
 					<div class="row">
 						<div class="col-xs-12 col-sm-5 mrgn-tp-sm"><button type="button" class="btn btn-link btn-block popup-modal-dismiss">${ i18nText.cancelBtn }</button></div>
-						<div class="col-xs-12 col-sm-7 mrgn-tp-sm"><button type="button" class="btn btn-primary btn-block popup-modal-dismiss" ${ attrScrubSubmit }>${ i18nText.confirmBtn }</button></div>
+						<div class="col-xs-12 col-sm-7 mrgn-tp-sm"><button type="button" class="btn btn-primary btn-block" ${ attrScrubSubmit }>${ i18nText.confirmBtn }</button></div>
 					</div>
 				</div>`;
 		}
@@ -13595,6 +13593,10 @@ var $document = wb.doc,
 
 		// Add PII fields HTML if using a custom UI template
 		if ( modalTemplate ) {
+
+			// Fix for implementers that added the "popup-modal-dismiss" class to the submit button
+			$( ".popup-modal-dismiss[" + attrScrubSubmit + "]" ).removeClass( "popup-modal-dismiss" );
+
 			$( "#" + piiModalID + " [data-scrub-modal-fields]" ).html( piiModalFields );
 		}
 	};
@@ -13614,6 +13616,8 @@ $document.on( "click", "#" + piiModalID + " [" + attrScrubSubmit + "]", function
 	} else {
 		form.submit();
 	}
+
+	$.magnificPopup.close();
 } );
 
 // Add the timer poke to initialize the plugin
@@ -14298,7 +14302,7 @@ var $modal, $modalLink, countdownInterval, i18n, i18nText,
 			return null;
 		}
 
-		result = /^([0-9]+(?:\.[0-9]*)?)\s*(.*s)?$/.exec( $.trim( value.toString() ) );
+		result = /^([0-9]+(?:\.[0-9]*)?)\s*(.*s)?$/.exec( value.toString().trim() );
 		if ( result[ 2 ] ) {
 			num = parseFloat( result[ 1 ] );
 			mult = powers[ result[ 2 ] ] || 1;
@@ -14647,11 +14651,12 @@ wb.add( selector );
  * variables that are common to all instances of the plugin on a page.
  */
 var componentName = "wb-steps",
-	selector = ".provisional." + componentName,
+	selector = "." + componentName,
 	initEvent = "wb-init" + selector,
 	$document = wb.doc,
 	i18n, i18nText,
 	btnPrevious, btnNext, btnSubmit,
+	quizSelector = selector + ".quiz",
 
 	/**
 	 * @method init
@@ -14676,7 +14681,9 @@ var componentName = "wb-steps",
 				i18n = wb.i18n;
 				i18nText = {
 					prv: i18n( "prv" ),
-					nxt: i18n( "nxt" )
+					nxt: i18n( "nxt" ),
+					relpreposition: i18n( "rel-preposition" ),
+					progresslabel: i18n( "progress-label" )
 				};
 			}
 
@@ -14763,8 +14770,58 @@ var componentName = "wb-steps",
 				$( form ).children( "input" ).hide();
 				wb.ready( $( elm ), componentName );
 			}
+
+			//Quiz code
+			if ( elm.classList.contains( "quiz" ) ) {
+
+				//Initialize all instances
+				let $elm = $( elm ),
+					numQuestion = $( ".steps-wrapper", $elm ).length; // Calculate number of questions
+
+				// Addition to UI (Ex: progress bar)
+				if ( !elm.querySelector( "progress" ) ) {
+					$( "form", $elm ).prepend( "<label class='full-width'><span class='wb-inv'>" + i18nText.progresslabel + "</span><progress class='progressBar' max='" + numQuestion + "'></progress><p class='progressText' role='status'></p></label>" );
+				}
+
+				updateQuizStep( evt );
+
+				$( document ).on( "click", quizSelector + " .steps-wrapper div.buttons > :button", updateQuizStep );
+			}
 		}
 	},
+
+	/**
+	 * @method updateQuizStep
+	 * @param {JavaScript element} e
+	 */
+	updateQuizStep = function( e ) {
+
+		// Get wb-steps component
+		let quizElement,
+			currentElement = e.currentTarget;
+
+		if ( currentElement.classList.contains( "quiz" ) ) {
+			quizElement = currentElement;
+		} else {
+			quizElement = $( currentElement ).parentsUntil( quizSelector ).parent().get( 0 );
+		}
+
+		// Find the steps form context and validate it is a quiz
+		let currentTabId = $( "legend.wb-steps-active:first-child", quizElement ).parents().prevAll( ".steps-wrapper" ).length + 1,
+			$progressBar = $( ".progressBar", quizElement ), // Get progress bar
+			numQuestion = $progressBar.attr( "max" ); // Get number of questions
+
+		// Set the progress label
+		$( "p.progressText", quizElement ).text( currentTabId + i18nText.relpreposition + numQuestion );
+
+		// Update progress bar
+		$progressBar.val( currentTabId );
+
+		// Hide other steps that are not active
+		$( ".steps-wrapper", quizElement ).removeClass( "hidden" );
+		$( ".steps-wrapper:has( div.hidden )", quizElement ).addClass( "hidden" );
+	},
+
 
 	/**
 	 * @method createStepsButton
@@ -16336,7 +16393,6 @@ const componentName = "wb-tagfilter",
 	selectorCtrl = "." + componentName + "-ctrl",
 	initEvent = "wb-init" + selector,
 	$document = wb.doc,
-	filterOutClass = "wb-fltr-out",
 	tgFilterOutClass = "wb-tgfltr-out",
 	itemsWrapperClass = "wb-tagfilter-items",
 	noResultWrapperClass = "wb-tagfilter-noresult",
@@ -16541,7 +16597,7 @@ const componentName = "wb-tagfilter",
 		matchItemsToFilters( instance );
 		updateDOMItems( instance );
 
-		$( instance ).trigger( "wb-contentupdated", [ { source: componentName } ] );
+		$( instance ).trigger( "wb-filtered", [ { source: componentName } ] );
 	};
 
 // When a filter is updated
@@ -16586,36 +16642,18 @@ $document.on( "change", selectorCtrl, function( event )  {
 	update( elm );
 } );
 
-$document.on( "wb-contentupdated", selector, function( event, data )  {
-	let that = this,
-		supportsHas = window.getComputedStyle( document.documentElement ).getPropertyValue( "--supports-has" ); // Get "--supports-has" CSS property
+// Reinitialize tagfilter if content on the page has been updated by another plugin
+$document.on( "wb-contentupdated", selector + ", " + selector + " *", function()  {
+	let that = this;
 
-	// Reinitialize tagfilter if content on the page has been updated by another plugin
-	if ( data && data.source !== componentName ) {
-		if ( wait ) {
-			clearTimeout( wait );
-		}
-
-		wait = setTimeout( function() {
-			that.classList.remove( "wb-init", componentName + "-inited" );
-			$( that ).trigger( "wb-init." + componentName );
-		}, 100 );
+	if ( wait ) {
+		clearTimeout( wait );
 	}
 
-	// Show no result message if on Firefox -- Remove once Firefox supports ":has()"
-	if ( supportsHas === "false" ) {
-		let noResultItem = this.querySelector( "." + noResultWrapperClass );
-
-		if ( noResultItem && this.items.length > 0 ) {
-			let visibleItems = this.querySelectorAll( "." + itemsWrapperClass + " " + "[data-wb-tags]:not(." + tgFilterOutClass + ", ." + filterOutClass + ")" );
-
-			if ( visibleItems.length < 1 ) {
-				noResultItem.style.display = "block";
-			} else {
-				noResultItem.style.display = "none";
-			}
-		}
-	}
+	wait = setTimeout( function() {
+		that.classList.remove( "wb-init", componentName + "-inited" );
+		$( that ).trigger( "wb-init." + componentName );
+	}, 100 );
 } );
 
 $document.on( "timerpoke.wb " + initEvent, selector, init );
