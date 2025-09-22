@@ -3,27 +3,47 @@
   <p><em>by Paul Craig</em></p>
 </div>
 
-Note that this repo was originally forked from [`ai-chat-quickstart-csharp`](https://github.com/Azure-Samples/ai-chat-quickstart-csharp)
+GC Chat is an open-source chatbot interface for the Government of Canada (GoC). GC Chat is accessible, bilingual, GoC-branded, and mobile-ready.
 
-GC Chat is an open-source chatbot interface purpose-built for the Government of Canada. GC Chat is accessible, bilingual, GoC-branded, and mobile-ready.
-
-GC Chat is an [ASP.NET app](https://dotnet.microsoft.com/en-us/apps/aspnet) that expects to be deployed inside of Azure.
+GC Chat is an [ASP.NET app](https://dotnet.microsoft.com/en-us/apps/aspnet) that can easily be deployed inside of Azure. At minimum, GC Chat requires a connection to an Azure OpenAI model, such as gpt-4o. You can use the [Azure AI Foundry](https://azure.microsoft.com/en-us/products/ai-foundry) to deploy a model for GC Chat to talk to.
 
 The project includes all the infrastructure and configuration needed to provision Azure OpenAI resources and deploy the app to [Azure Container Apps](https://learn.microsoft.com/azure/container-apps/overview) using the [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/overview).
+
+Note that this repo was originally forked from [`ai-chat-quickstart-csharp`](https://github.com/Azure-Samples/ai-chat-quickstart-csharp)
+
+## Demo gif
+
+[![Basic walkthrough of GC Chat.](./docs/gc-chat-demo-sm.gif)](./docs/gc-chat-demo-lg.gif)
+
+<details>
+<summary>
+This 50-second gif shows a basic walkthrough of GC Chat.
+</summary>
+
+<div>
+It shows:
+
+<ul>
+<li>Asking a question</li>
+<li>Opening a source</li>
+<li>Asking another question</li>
+<li>Leaving positive feedback</li>
+<li>Clearing the conversation</li>
+<li>Opening the Chat History</li>
+<li>Looking at a past conversation</li>
+<li>Browsing list of source documents</li>
+<li>Resetting the chat</li>
+</ul>
+</div>
+</details>
 
 ## Table of Contents
 
 - [Features](#features)
 - [Architecture diagram](#architecture-diagram)
 - [Getting started](#getting-started)
-  - [Local Environment - Visual Studio or VS Code](#local-environment)
-  - [GitHub Codespaces](#github-codespaces)
-  - [VS Code Dev Containers](#vs-code-dev-containers)
-- [Deploying](#deploying)
-- [Development server](#development-server)
-- [Guidance](#guidance)
-  - [Costs](#costs)
-  - [Security Guidelines](#security-guidelines)
+  - [Local development](#local-development)
+  - [Deploying GC Chat on Azure](#deploying-gc-chat-on-azure)
 - [Resources](#resources)
 
 ## Features
@@ -37,108 +57,198 @@ The project includes all the infrastructure and configuration needed to provisio
 
 ## Architecture diagram
 
-![Diagram of GC Chat’s architecture in Azure: documents are uploaded to Blob Storage, indexed with Azure AI Search and text-embedding-3-large, and then queried by the container app. The app sends questions and documents to a GPT-4o chat model, returns answers to the user, and stores conversations in Cosmos DB.](./docs/arch-diagram.png)
+![Diagram of GC Chat’s architecture in Azure: documents are uploaded to Blob Storage, indexed with Azure AI Search and text-embedding-3-large, and then queried by the container app. The app sends questions and documents to a GPT-4o chat model, returns answers to the user, and stores conversations in Cosmos DB.](./docs/gc-chat-arch-diagram.png)
 
 ## Getting started
 
 You have a few options for getting started with this app.
 
-We will focus on two: local development and deployment on Azure.
+We will focus on two:
 
-### Local Environment
+1. Local development
+2. Deployment on Azure
 
-To run the app locally, follow these directions:
+### Local development
 
-1. Make sure the following tools are installed:
+GC Chat is an ASP.NET Core app you can run locally as long as you have an Azure OpenAI model to connect to.
 
-   - [.NET 9](https://dotnet.microsoft.com/downloads/)
-   - [Git](https://git-scm.com/downloads)
-   - [Azure Developer CLI (azd)](https://aka.ms/install-azd)
-   - [VS Code](https://code.visualstudio.com/Download) or [Visual Studio](https://visualstudio.microsoft.com/downloads/)
-     - If using VS Code, install the [C# Dev Kit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit)
+If you have other resources deployed (eg, Azure AI Search, CosmosDB, a blobl storage container), you can also connect to those. However, the minimal requirement is an Azure OpenAI model.
 
-2. If you're using Visual Studio, open the src/ai-chat-quickstart.sln solution file. If you're using VS Code, open the src folder.
+#### 0. Prerequisites
 
-3. Continue with the [deploying steps](#deploying).
+To run the app locally, make sure the following tools are installed:
 
-Note that if this app is already running in an Azure environment, you can connect to backend services locally and run on your desktop.
+- [.NET 9](https://dotnet.microsoft.com/downloads/)
+- [Git](https://git-scm.com/downloads)
+- [Azure Developer CLI (azd)](https://aka.ms/install-azd)
+- [VS Code](https://code.visualstudio.com/Download) or [Visual Studio](https://visualstudio.microsoft.com/downloads/)
+  - If using VS Code, install the [C# Dev Kit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit)
 
-## Deploying
+#### 1. **Clone and open the app**
 
-Once you've opened the project in [Codespaces](#github-codespaces), in [Dev Containers](#vs-code-dev-containers), or [locally](#local-environment), you can deploy it to Azure.
+```bash
+git clone git@github.com:pcraig3/gc-chat.git
+cd <repo-root>/src/AIChatApp
+```
 
-### Azure account setup
+#### 2. **Create appsettings.Local.json** (this file is ignored by git)
 
-1. Make sure you have an azure account and access to [environment]
+Copy `appsettings.Local.json.example` and create a new file: `appsettings.Local.json`.
 
-2. Check that you have the necessary permissions:
+```bash
+# make sure you are in src/AIChatApp/
+cp appsettings.Local.json.example appsettings.Local.json
+```
 
-   - Your Azure account must have `Microsoft.Authorization/roleAssignments/write` permissions, such as [Role Based Access Control Administrator](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#role-based-access-control-administrator-preview), [User Access Administrator](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#user-access-administrator), or [Owner](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#owner). If you don't have subscription-level permissions, you must be granted [RBAC](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#role-based-access-control-administrator-preview) for an existing resource group and [deploy to that existing group](/docs/deploy_existing.md#resource-group).
-   - Your Azure account also needs `Microsoft.Resources/deployments/write` permissions on the subscription level.
+#### 3. **Fill in Azure OpenAI configuration values**
 
-### Deploying with azd
+- `AZURE_OPENAI_DEPLOYMENT`: the default is `gpt-4o`. Change this if you are using a different model.
+- `AZURE_OPENAI_ENDPOINT`: The endpoint of your Azure OpenAI service. You can find this under `Azure OpenAI` > `Overview` > `Endpoints` in the Azure console.
+- `AZURE_OPENAI_KEY`: (optional) The API key for your Azure OpenAI service.
 
-From a Terminal window, open the folder with the clone of this repo and run the following commands.
+Authentication can be done either using an API key or by using the `azd` command line tool.
 
-1. Login to Azure:
+_Option A — Key-based authentication_
 
-   ```shell
-   azd auth login
-   ```
+Set `AZURE_OPENAI_KEY` using the value from `Azure OpenAI` → `Resource Management` → `Keys and Endpoint` → `KEY 1`.
 
-2. Provision and deploy all the resources:
+_Option B — Credential-based authentication_
 
-   ```shell
-   azd up
-   ```
+Sign in with Azure so the app uses [DefaultAzureCredential](https://learn.microsoft.com/dotnet/api/azure.identity.defaultazurecredential) (Azure AD / Microsoft Entra ID authentication):
 
-   It will prompt you to provide an `azd` environment name (like "chat-app"), select a subscription from your Azure account, and select a [location where OpenAI is available](https://azure.microsoft.com/explore/global-infrastructure/products-by-region/?products=cognitive-services&regions=all) (like "canadaeast"). Also useful to reference [which models are available in Canada](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models?tabs=global-standard%2Cstandard-chat-completions#global-standard-model-availability). Then it will provision the resources in your account and deploy the latest code. If you get an error or timeout with deployment, changing the location can help, as there may be availability constraints for the OpenAI resource.
+```bash
+azd auth login
+```
 
-3. When `azd` has finished deploying, you'll see an endpoint URI in the command output. Visit that URI, and you should see the chat app! 🎉
+Leave `AZURE_OPENAI_KEY` empty, you don't need it.
 
-4. When you've made any changes to the app code, you can just run:
+#### 4. **Run it**
 
-   ```shell
-   azd deploy
-   ```
+```bash
+dotnet run
 
-## Development server
+# run with hot reloads
+dotnet watch run
+```
 
-In order to run this app, you need to either have an Azure OpenAI account deployed (from the [deploying steps](#deploying)), use the [Azure AI Model Catalog](https://learn.microsoft.com/en-us/azure/machine-learning/concept-model-catalog?view=azureml-api-2), or use a [local LLM server](/docs/local_ollama.md).
+The app starts on `http://localhost:5153` and is fully usable against your Azure OpenAI deployment.
 
-After deployment, Azure OpenAI is configured for you using [User Secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets). If you could not run the deployment steps here, or you want to use different models, you can manually update the settings in `appsettings.local.json`. **Important:** This file is only for local development and this sample includes it in the `.gitignore` file so changes to it will be ignored. Do not check your secure keys into source control!
+💡 Note: this repo was originally forked from [`ai-chat-quickstart-csharp`](https://github.com/Azure-Samples/ai-chat-quickstart-csharp), and can be run using local Ollama models if preferred. Read more here: [https://github.com/Azure-Samples/ai-chat-quickstart-csharp?tab=readme-ov-file#development-server](https://github.com/Azure-Samples/ai-chat-quickstart-csharp?tab=readme-ov-file#development-server)
 
-1. If you want to use an existing Azure OpenAI deployment, you modify the `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_DEPLOYMENT` configuration settings in the `appsettings.local.json` file.
+### Deploying GC Chat on Azure
 
-2. For use with local models, change `AIHost` to "local" in the `appsettings.local.json` file and change `LOCAL_MODELS_ENDPOINT` and `LOCAL_MODELS_NAME` to match the local server. See [local LLM server](/docs/local_ollama.md) for more information.
+This project uses the [Azure Developer CLI (azd)](https://learn.microsoft.com/azure/developer/azure-developer-cli/overview) to provision Azure resources and deploy the app.
 
-3. To use the Azure AI Model Catalog, change `AIHost` to "azureAIModelCatalog" in the `appsettings.local.json` file. Change `AZURE_INFERENCE_KEY`, `AZURE_MODEL_NAME`, and `AZURE_MODEL_ENDPOINT` settings to match your configuration in the Azure AI Model Catalog.
+#### 0. Prerequisites and permissions
 
-4. Start the project:
+Before you begin:
 
-   **If using Visual Studio**, choose the `Debug > Start Debugging` menu.
-   **If using VS Code or GitHub CodeSpaces\***, choose the `Run > Start Debugging` menu.
-   Finally, if using the command line, run the following from the project directory:
+- Make sure you have an Azure account and the [Azure Developer CLI](https://aka.ms/install-azd) installed.
+- You must have sufficient permissions to create resources:
+  - `Microsoft.Authorization/roleAssignments/write` (e.g. **Owner**, **User Access Administrator**, or **RBAC Administrator**)
+  - `Microsoft.Resources/deployments/write` at the subscription or resource group level
+- If you do not have these permissions, the steps below will fail. Ask an administrator to grant you access first (or have them create these resources so that you can connect to them).
 
-   ```shell
-   dotnet run
-   ```
+#### 1. Authenticate with Azure
 
-   This will start the app on port 5153, and you can access it at `http://localhost:5153`.
+Log in to Azure with `azd`:
 
-## Guidance
+```
+azd auth login
+```
 
-### Security Guidelines
+This will open a browser window and prompt you to sign in with your Azure account. Once logged in, your session will be cached for future `azd` commands.
 
-This template uses [Managed Identity](https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview) for authenticating to the Azure OpenAI service.
+#### 2. Create a new environment
 
-Additionally, we have added a [GitHub Action](https://github.com/microsoft/security-devops-action) that scans the infrastructure-as-code files and generates a report containing any detected issues. To ensure continued best practices in your own repository, we recommend that anyone creating solutions based on our templates ensure that the [Github secret scanning](https://docs.github.com/code-security/secret-scanning/about-secret-scanning) setting is enabled.
+An `azd` environment corresponds to an Azure resource group. The name you choose here will become the prefix for all provisioned resources.
 
-You may want to consider additional security measures, such as:
+```
+azd env new gc-chat-01 --location canadacentral
+azd env select gc-chat-01
+```
 
-- Protecting the Azure Container Apps instance with a [firewall](https://learn.microsoft.com/azure/container-apps/waf-app-gateway) and/or [Virtual Network](https://learn.microsoft.com/azure/container-apps/networking?tabs=workload-profiles-env%2Cazure-cli).
+#### 3. Provision Azure resources
+
+Run:
+
+```
+azd provision
+```
+
+This step will create and configure all required Azure resources:
+
+- **Azure OpenAI Service** — GPT-4o (chat) + text-embedding-3-large (vector embeddings)
+- **Azure Container Apps** — .NET hosting
+- **Azure Container Registry** — container images
+- **Azure AI Search** — vector search + document indexing
+- **Azure Cosmos DB** — chat session + user data storage
+- **Azure Blob Storage** — document repository
+- **Log Analytics Workspace** — monitoring and logging
+
+Provisioning can take a few minutes. You will see progress in the terminal, and you can also view detailed progress in the Azure Portal.
+
+By defualt, all resources will be deployed in `Canada Central`, except for Azure OpenAI, which is deployed in `Canada East`.
+
+Here is what you should see once everything is deployed:
+
+![Azure services deployed to run GC Chat.](./docs/gc-chat-az-rg.png)
+
+#### 4. Collect configuration values
+
+Once provisioned, gather connection values from the Azure Portal and add them to a local settings file.
+
+Add these values to your `/src/AIChatApp/appsettings.Local.json`. (Note that this file is ignored by git):
+
+```json
+{
+  "DetailedErrors": true,
+  "AIHost": "azureOpenAI",
+  "ASPNETCORE_ENVIRONMENT": "Development",
+
+  "AZURE_OPENAI_DEPLOYMENT": "gpt-4o",
+  "AZURE_OPENAI_ENDPOINT": "https://<your-openai>.openai.azure.com/",
+  "AZURE_OPENAI_KEY": "<your-openai-key>",
+
+  "cosmosdb-connection-string": "<your-cosmosdb-connection-string>",
+  "storage-connection-string": "<your-storage-connection-string>",
+
+  "search-api-key": "<your-search-admin-key>",
+  "search-endpoint": "https://<your-search-service>.search.windows.net",
+  "search-index-name": "<your-index-name>"
+}
+```
+
+Where to find these values:
+
+- **Cosmos DB connection string:** `Cosmos DB` → `Settings` → `Keys` → `PRIMARY CONNECTION STRING`
+- **Storage connection string:** `Storage Account` → `Security + networking` → `Access keys` → `Connection string (key1)`
+- **Search API key:** `Search Service` → `Settings` → `Keys` → `Primary admin key` or `Secondary admin key`
+- **Search endpoint:** `Search Service` → `Overview` → copy the endpoint `URL`
+- **Search index name**: `Search Service` → `Search Management` → `Indexes` → copy your index name
+
+#### 5. Deploy the application
+
+Once your configuration file is filled in, you can run the application locally, or deploy the application code.
+
+To deploy the application, use `azd`.
+
+```shell
+azd deploy
+```
+
+This step will:
+
+- Build and push the .NET container image to Azure Container Registry
+- Deploy the container to Azure Container Apps
+- Inject your configuration values into the container environment
+
+When finished, the command output will include the public Container App URL. Open it in your browser to use the app.
+
+In future, when you've made any changes to the app code, you can just run `azd deploy` again and your new changes will be deployed.
 
 ## Resources
 
+- [Chat Application using Azure OpenAI (C#/.NET)](https://github.com/Azure-Samples/ai-chat-quickstart-csharp): A simple C#/.NET chat application that uses managed identity for Azure OpenAI access. Designed for deployment on Azure Container Apps with the Azure Developer CLI.
 - [RAG chat with Azure AI Search + C#/.NET](https://github.com/Azure-Samples/azure-search-openai-demo-csharp/): A more advanced chat app that uses Azure AI Search to ground responses in domain knowledge. Includes user authentication with Microsoft Entra as well as data access controls.
 - [Develop .NET Apps with AI Features](https://learn.microsoft.com/en-us/dotnet/ai/get-started/dotnet-ai-overview)
